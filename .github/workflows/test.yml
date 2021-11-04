@@ -1,0 +1,14 @@
+name: test
+
+on:
+  push: { branches: [master] }
+  pull_request: { branches: [master] }
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/setup-go@v2
+    - uses: actions/checkout@v2
+    - name: test
+      run: go mod download && go test -v .
