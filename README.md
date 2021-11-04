@@ -1,11 +1,5 @@
 <p align="center">goflags-markdown -- generate markdown from a [go-flags](https://github.com/jessevdk/go-flags) parser</p>
 <p align="center">
-  <a href="https://github.com/lrstanley/deluge-remove-after/releases"><img src="https://github.com/lrstanley/deluge-remove-after/workflows/release/badge.svg" alt="Release Status"></a>
-  <a href="https://github.com/users/lrstanley/packages/container/deluge-remove-after/versions"><img src="https://img.shields.io/badge/Docker-ghcr.io%2Flrstanley%2Fdeluge--remove--after-blue.svg" alt="Docker"></a>
-  <a href="https://liam.sh/chat"><img src="https://img.shields.io/badge/Community-Chat%20with%20us-green.svg" alt="Community Chat"></a>
-</p>
-
-<p align="center">
   <a href="https://pkg.go.dev/github.com/lrstanley/goflags-markdown"><img src="https://pkg.go.dev/badge/github.com/lrstanley/goflags-markdown" alt="pkg.go.dev"></a>
   <a href="https://github.com/lrstanley/goflags-markdown/actions"><img src="https://github.com/lrstanley/goflags-markdown/workflows/test/badge.svg" alt="test status"></a>
   <a href="https://goreportcard.com/report/github.com/lrstanley/goflags-markdown"><img src="https://goreportcard.com/badge/github.com/lrstanley/goflags-markdown" alt="goreportcard"></a>
