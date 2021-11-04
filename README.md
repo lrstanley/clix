@@ -1,4 +1,4 @@
-<p align="center">goflags-markdown -- generate markdown from a [go-flags](https://github.com/jessevdk/go-flags) parser</p>
+<p align="center">goflags-markdown -- generate markdown from a <a href="https://github.com/jessevdk/go-flags">go-flags</a> parser</p>
 <p align="center">
   <a href="https://pkg.go.dev/github.com/lrstanley/goflags-markdown"><img src="https://pkg.go.dev/badge/github.com/lrstanley/goflags-markdown" alt="pkg.go.dev"></a>
   <a href="https://github.com/lrstanley/goflags-markdown/actions"><img src="https://github.com/lrstanley/goflags-markdown/workflows/test/badge.svg" alt="test status"></a>
