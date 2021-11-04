@@ -1,6 +1,7 @@
 // Copyright (c) Liam Stanley <me@liamstanley.io>. All rights reserved. Use
 // of this source code is governed by the MIT license that can be found in
 // the LICENSE file.
+
 package goflagsmarkdown
 
 import (
@@ -13,6 +14,7 @@ import (
 
 const optionHeader = "| Environment vars | Flags | Description |\n| --- | --- | --- |\n"
 
+// Generate writes generated marakdown to the provided io.Writer.
 func Generate(parser *flags.Parser, out io.Writer) {
 	generateRecursive(parser, out)
 
