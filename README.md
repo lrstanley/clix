@@ -60,7 +60,7 @@ Raw:
 #### Application Options
 | Environment vars | Flags | Description |
 | --- | --- | --- |
-|  | `-v, --version` | display the version and exit |
+| N/A | `-v, --version` | display the version and exit |
 | `DEBUG` | `-D, --debug` | enable debugging |
 
 #### Example Group
@@ -82,7 +82,7 @@ Generated:
 #### Application Options
 | Environment vars | Flags | Description |
 | --- | --- | --- |
-|  | `-v, --version` | display the version and exit |
+| N/A | `-v, --version` | display the version and exit |
 | `DEBUG` | `-D, --debug` | enable debugging |
 
 #### Example Group
