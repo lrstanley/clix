@@ -12,12 +12,11 @@ import (
 	flags "github.com/jessevdk/go-flags"
 )
 
-const optionHeader = "| Environment vars | Flags | Description |\n| --- | --- | --- |\n"
+const optionHeader = "| Environment vars | Flags | Type | Description |\n| --- | --- | --- | --- |\n"
 
 // Generate writes generated marakdown to the provided io.Writer.
 func Generate(parser *flags.Parser, out io.Writer) {
 	generateRecursive(parser, out)
-
 }
 
 func generateRecursive(parser *flags.Parser, out io.Writer, groups ...*flags.Group) {
@@ -46,7 +45,7 @@ func generateRecursive(parser *flags.Parser, out io.Writer, groups ...*flags.Gro
 			if environment != "" {
 				environment = "`" + environment + "`"
 			} else {
-				environment = "N/A"
+				environment = "-"
 			}
 
 			description := option.Description
@@ -65,7 +64,12 @@ func generateRecursive(parser *flags.Parser, out io.Writer, groups ...*flags.Gro
 
 			description = strings.Replace(description, "|", "\\|", -1)
 
-			fmt.Fprintf(out, "| %s | `%s` | %s |\n", environment, option.String(), description)
+			_type := fmt.Sprintf("%T", option.Value())
+			if strings.Contains(strings.ToLower(_type), "func") {
+				_type = "-"
+			}
+
+			fmt.Fprintf(out, "| %s | `%s` | %s | %s |\n", environment, option.String(), _type, description)
 		}
 
 		groups := group.Groups()

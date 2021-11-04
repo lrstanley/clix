@@ -58,21 +58,21 @@ Raw:
 
 ```markdown
 #### Application Options
-| Environment vars | Flags | Description |
-| --- | --- | --- |
-| N/A | `-v, --version` | display the version and exit |
-| `DEBUG` | `-D, --debug` | enable debugging |
+| Environment vars | Flags | Type | Description |
+| --- | --- | --- | --- |
+| - | `-v, --version` | bool | display the version and exit |
+| `DEBUG` | `-D, --debug` | bool | enable debugging |
 
 #### Example Group
-| Environment vars | Flags | Description |
-| --- | --- | --- |
-| `EXAMPLE_USERNAME` | `-u, --example.username` | example username [**default: admin**] |
-| `EXAMPLE_PASSWORD` | `-p, --example.password` | example password |
+| Environment vars | Flags | Type | Description |
+| --- | --- | --- | --- |
+| `EXAMPLE_USERNAME` | `-u, --example.username` | string | example username [**default: admin**] |
+| `EXAMPLE_PASSWORD` | `-p, --example.password` | string | example password |
 
 #### Help Options
-| Environment vars | Flags | Description |
-| --- | --- | --- |
-| N/A | `-h, --help` | Show this help message |
+| Environment vars | Flags | Type | Description |
+| --- | --- | --- | --- |
+| - | `-h, --help` | - | Show this help message |
 ```
 
 Generated:
@@ -80,21 +80,21 @@ Generated:
 ------------
 
 #### Application Options
-| Environment vars | Flags | Description |
-| --- | --- | --- |
-| N/A | `-v, --version` | display the version and exit |
-| `DEBUG` | `-D, --debug` | enable debugging |
+| Environment vars | Flags | Type | Description |
+| --- | --- | --- | --- |
+| - | `-v, --version` | bool | display the version and exit |
+| `DEBUG` | `-D, --debug` | bool | enable debugging |
 
 #### Example Group
-| Environment vars | Flags | Description |
-| --- | --- | --- |
-| `EXAMPLE_USERNAME` | `-u, --example.username` | example username [**default: admin**] |
-| `EXAMPLE_PASSWORD` | `-p, --example.password` | example password |
+| Environment vars | Flags | Type | Description |
+| --- | --- | --- | --- |
+| `EXAMPLE_USERNAME` | `-u, --example.username` | string | example username [**default: admin**] |
+| `EXAMPLE_PASSWORD` | `-p, --example.password` | string | example password |
 
 #### Help Options
-| Environment vars | Flags | Description |
-| --- | --- | --- |
-| N/A | `-h, --help` | Show this help message |
+| Environment vars | Flags | Type | Description |
+| --- | --- | --- | --- |
+| - | `-h, --help` | - | Show this help message |
 
 ------------
 
