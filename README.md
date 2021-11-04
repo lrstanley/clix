@@ -72,7 +72,7 @@ Raw:
 #### Help Options
 | Environment vars | Flags | Description |
 | --- | --- | --- |
-|  | `-h, --help` | Show this help message |
+| N/A | `-h, --help` | Show this help message |
 ```
 
 Generated:
@@ -94,7 +94,7 @@ Generated:
 #### Help Options
 | Environment vars | Flags | Description |
 | --- | --- | --- |
-|  | `-h, --help` | Show this help message |
+| N/A | `-h, --help` | Show this help message |
 
 ------------
 

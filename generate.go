@@ -43,6 +43,8 @@ func generateRecursive(parser *flags.Parser, out io.Writer, groups ...*flags.Gro
 			environment := option.EnvKeyWithNamespace()
 			if environment != "" {
 				environment = "`" + environment + "`"
+			} else {
+				environment = "N/A"
 			}
 
 			description := option.Description
