@@ -9,7 +9,8 @@
 
 ## TODO
 
-[ ] Commands/sub-commands/etc
+- [ ] Commands/sub-commands/etc
+- [ ] Custom formatting
 
 ## Usage
 
