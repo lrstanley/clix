@@ -62,7 +62,7 @@ func generateRecursive(parser *flags.Parser, out io.Writer, groups ...*flags.Gro
 				description += fmt.Sprintf(" [**choices: %s**]", strings.Join(option.Choices, ", "))
 			}
 
-			description = strings.Replace(description, "|", "\\|", -1)
+			description = strings.ReplaceAll(description, "|", "\\|")
 
 			_type := fmt.Sprintf("%T", option.Value())
 			if strings.Contains(strings.ToLower(_type), "func") {
