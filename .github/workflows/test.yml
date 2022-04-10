@@ -8,7 +8,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
     - uses: actions/checkout@v3
     - name: test
       run: go mod download && go test -v .
