@@ -47,24 +47,24 @@ type LoggerConfig struct {
 func (cli *CLI[T]) newLogger() {
 	cli.Logger = &log.Logger{}
 
-	if cli.logConfig.Level == "" {
+	if cli.LoggerConfig.Level == "" {
 		cli.Logger.Level = log.InfoLevel
 	}
 
 	if cli.Debug {
 		cli.Logger.Level = log.DebugLevel
-	} else if cli.logConfig.Level == "" {
+	} else if cli.LoggerConfig.Level == "" {
 		cli.Logger.Level = log.InfoLevel
 	} else {
-		cli.Logger.Level = log.MustParseLevel(cli.logConfig.Level)
+		cli.Logger.Level = log.MustParseLevel(cli.LoggerConfig.Level)
 	}
 
 	switch {
-	case cli.logConfig.Quiet:
+	case cli.LoggerConfig.Quiet:
 		cli.Logger.Handler = discard.New()
-	case cli.logConfig.JSON:
+	case cli.LoggerConfig.JSON:
 		cli.Logger.Handler = json.New(os.Stdout)
-	case cli.logConfig.Pretty:
+	case cli.LoggerConfig.Pretty:
 		cli.Logger.Handler = text.New(os.Stdout)
 	default:
 		cli.Logger.Handler = logfmt.New(os.Stdout)

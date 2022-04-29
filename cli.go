@@ -5,7 +5,6 @@
 package clix
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/apex/log"
@@ -42,16 +41,11 @@ const (
 //  cli.Flags.SomeFlag  // some value
 //  cli.Debug           // true|false
 //  logger = cli.Logger // initialize your logger using the one from CLI.
-func New[T any](options Options) (cli *CLI[T]) {
+func New[T any](options ...Options) (cli *CLI[T]) {
 	cli = &CLI[T]{
-		options: options,
-		Flags:   new(T),
+		Flags: new(T),
 	}
-
-	cli.Parser = flags.NewParser(cli, flags.HelpFlag|flags.PassDoubleDash)
-
-	cli.Parser.NamespaceDelimiter = "."
-	cli.Parser.EnvNamespaceDelimiter = "_"
+	cli.Set(options...)
 
 	return cli
 }
@@ -73,28 +67,37 @@ type CLI[T any] struct {
 	// sets the log level to debug.
 	Debug bool `short:"D" long:"debug" env:"DEBUG" description:"enables debug mode"`
 
+	GenerateMarkdown bool `long:"generate-markdown" hidden:"true" description:"generate markdown documentation and write to stdout"`
+
 	// Logger is the generated logger.
 	Logger *log.Logger `json:"-"`
 
 	// Parser is the go-flags parser, which can be used to add/change parser
 	// configurations.
-	Parser *flags.Parser `json:"-"`
+	// Parser *flags.Parser `json:"-"`
 
-	logConfig LoggerConfig `group:"Logging Options" namespace:"log" env-namespace:"LOG"`
-	options   Options      `json:"-"`
+	LoggerConfig LoggerConfig `group:"Logging Options" namespace:"log" env-namespace:"LOG"`
+	options      Options      `json:"-"`
+}
+
+func (cli *CLI[T]) newParser() (p *flags.Parser) {
+	p = flags.NewParser(cli, flags.PrintErrors|flags.HelpFlag|flags.PassDoubleDash)
+
+	p.NamespaceDelimiter = "."
+	p.EnvNamespaceDelimiter = "_"
+
+	return p
 }
 
 // Parse executes the go-flags parser, returns the remaining arguments, as
 // well as initializes a new logger. If cli.Version is set, it will print
 // the version information (unless disabled).
 func (cli *CLI[T]) Parse() *CLI[T] {
-	args, err := cli.Parser.Parse()
+	args, err := cli.newParser().Parse()
 	if err != nil {
 		if FlagErr, ok := err.(*flags.Error); ok && FlagErr.Type == flags.ErrHelp {
 			os.Exit(0)
 		}
-
-		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
@@ -110,6 +113,11 @@ func (cli *CLI[T]) Parse() *CLI[T] {
 		os.Exit(1)
 	}
 
+	if cli.GenerateMarkdown {
+		cli.Markdown(os.Stdout)
+		os.Exit(0)
+	}
+
 	return cli
 }
 
@@ -119,6 +127,8 @@ func (cli *CLI[T]) IsSet(options Options) bool {
 }
 
 // Set sets the given option.
-func (cli *CLI[T]) Set(option Options) {
-	cli.options |= option
+func (cli *CLI[T]) Set(options ...Options) {
+	for _, o := range options {
+		cli.options |= o
+	}
 }

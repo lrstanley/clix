@@ -9,7 +9,6 @@
     <img title="Last commit" src="https://img.shields.io/github/last-commit/lrstanley/clix?style=flat-square">
   </a>
 
-
   <a href="https://github.com/lrstanley/clix/actions?query=workflow%3Atest+event%3Apush">
     <img title="GitHub Workflow Status (test @ master)" src="https://img.shields.io/github/workflow/status/lrstanley/clix/test/master?label=test&style=flat-square&event=push">
   </a>
@@ -44,56 +43,55 @@
 
 <!-- template:begin:toc -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
+
 ## :link: Table of Contents
 
-  - [TODO](#ballot_box_with_check-todo)
-  - [Usage](#gear-usage)
-  - [Generate Markdown](#generate-markdown)
-    - [Example output](#example-output)
-      - [Application Options](#application-options)
-      - [Example Group](#example-group)
-      - [Help Options](#help-options)
-  - [Support &amp; Assistance](#raising_hand_man-support--assistance)
-  - [Contributing](#handshake-contributing)
-  - [License](#balance_scale-license)
+-   [TODO](#ballot_box_with_check-todo)
+-   [Usage](#gear-usage)
+-   [Generate Markdown](#generate-markdown)
+    -   [Example output](#example-output)
+        -   [Application Options](#application-options)
+        -   [Example Group](#example-group)
+        -   [Help Options](#help-options)
+-   [Support &amp; Assistance](#raising_hand_man-support--assistance)
+-   [Contributing](#handshake-contributing)
+-   [License](#balance_scale-license)
 <!-- template:end:toc -->
 
 ## :ballot_box_with_check: TODO
 
--   [ ] Generate commands/sub-commands/etc
+-   [ ] Generate commands/sub-commands/etc ([example](https://github.com/jessevdk/go-flags/pull/364))
 -   [ ] Custom markdown formatting
 
 ## :gear: Usage
 
 <!-- template:begin:goget -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
+
 ```console
 $ go get -u github.com/lrstanley/clix@latest
 ```
+
 <!-- template:end:goget -->
 
-## Generate Markdown
-
-Generate markdown from a provided `flags.Parser`, that can be embedded in
-a readme.
+Example:
 
 ```go
 package main
 
 import (
-	"os"
-
-	flags "github.com/jessevdk/go-flags"
+	"github.com/apex/log"
 	clix "github.com/lrstanley/clix"
 )
 
 var (
-	cli = &Flags{}
+	cli    *clix.CLI[Flags]
+	logger log.Interface
 )
 
 type Flags struct {
-	VersionFlag bool `short:"v" long:"version" description:"display the version and exit"`
-	Debug       bool `env:"DEBUG" short:"D" long:"debug" description:"enable debugging"`
+	EnableHTTP bool   `short:"e" long:"enable-http" description:"enable the http server"`
+	File       string `env:"FILE" short:"f" long:"file" description:"some file that does something"`
 
 	SubFlags struct {
 		Username string `env:"USERNAME" short:"u" long:"username" default:"admin" description:"example username"`
@@ -102,17 +100,27 @@ type Flags struct {
 }
 
 func main() {
-	var err error
+	// Initializes cli flags, and a pre-configured logger, based off user-provided
+	// flags (e.g. --log.json, --log.level, etc). Also automatically handles
+	// --version, --help, etc.
+	cli = clix.New[Flags]().Parse()
+	logger = cli.Logger
 
-	parser := flags.NewParser(cli, flags.HelpFlag|flags.PrintErrors|flags.PassDoubleDash)
-
-	if _, err = parser.Parse(); err != nil {
-		os.Exit(1)
-	}
-
-	clix.GenerateMarkdown(parser, os.Stdout)
-	os.Exit(0)
+	logger.WithFields(log.Fields{
+		"debug":     cli.Debug,
+		"file_path": cli.Flags.File,
+	}).Info("hello world")
 }
+```
+
+## Generate Markdown
+
+When using **clix**, you can generate markdown for your commands by passing the
+flag `--generate-markdown`, which is a hidden flag. This will print the markdown
+to stdout.
+
+```console
+$ ./<my-script> --generate-markdown > USAGE.md
 ```
 
 ### Example output
@@ -122,10 +130,12 @@ Raw:
 ```markdown
 #### Application Options
 
-| Environment vars | Flags           | Type | Description                  |
-| ---------------- | --------------- | ---- | ---------------------------- |
-| -                | `-v, --version` | bool | display the version and exit |
-| `DEBUG`          | `-D, --debug`   | bool | enable debugging             |
+| Environment vars | Flags               | Type   | Description                          |
+| ---------------- | ------------------- | ------ | ------------------------------------ |
+| -                | `-e, --enable-http` | bool   | enable the http server               |
+| `FILE`           | `-f, --file`        | string | some file that does something        |
+| -                | `-v, --version`     | bool   | prints version information and exits |
+| `DEBUG`          | `-D, --debug`       | bool   | enables debug mode                   |
 
 #### Example Group
 
@@ -134,11 +144,14 @@ Raw:
 | `EXAMPLE_USERNAME` | `-u, --example.username` | string | example username [**default: admin**] |
 | `EXAMPLE_PASSWORD` | `-p, --example.password` | string | example password                      |
 
-#### Help Options
+#### Logging Options
 
-| Environment vars | Flags        | Type | Description            |
-| ---------------- | ------------ | ---- | ---------------------- |
-| -                | `-h, --help` | -    | Show this help message |
+| Environment vars | Flags          | Type   | Description                                                                      |
+| ---------------- | -------------- | ------ | -------------------------------------------------------------------------------- |
+| `LOG_QUIET`      | `--log.quiet`  | bool   | disable logging to stdout (also: see levels)                                     |
+| `LOG_LEVEL`      | `--log.level`  | string | logging level [**default: info**] [**choices: debug, info, warn, error, fatal**] |
+| `LOG_JSON`       | `--log.json`   | bool   | output logs in JSON format                                                       |
+| `LOG_PRETTY`     | `--log.pretty` | bool   | output logs in a pretty colored format (cannot be easily parsed)                 |
 ```
 
 Generated:
@@ -147,10 +160,12 @@ Generated:
 
 #### Application Options
 
-| Environment vars | Flags           | Type | Description                  |
-| ---------------- | --------------- | ---- | ---------------------------- |
-| -                | `-v, --version` | bool | display the version and exit |
-| `DEBUG`          | `-D, --debug`   | bool | enable debugging             |
+| Environment vars | Flags               | Type   | Description                          |
+| ---------------- | ------------------- | ------ | ------------------------------------ |
+| -                | `-e, --enable-http` | bool   | enable the http server               |
+| `FILE`           | `-f, --file`        | string | some file that does something        |
+| -                | `-v, --version`     | bool   | prints version information and exits |
+| `DEBUG`          | `-D, --debug`       | bool   | enables debug mode                   |
 
 #### Example Group
 
@@ -159,40 +174,46 @@ Generated:
 | `EXAMPLE_USERNAME` | `-u, --example.username` | string | example username [**default: admin**] |
 | `EXAMPLE_PASSWORD` | `-p, --example.password` | string | example password                      |
 
-#### Help Options
+#### Logging Options
 
-| Environment vars | Flags        | Type | Description            |
-| ---------------- | ------------ | ---- | ---------------------- |
-| -                | `-h, --help` | -    | Show this help message |
+| Environment vars | Flags          | Type   | Description                                                                      |
+| ---------------- | -------------- | ------ | -------------------------------------------------------------------------------- |
+| `LOG_QUIET`      | `--log.quiet`  | bool   | disable logging to stdout (also: see levels)                                     |
+| `LOG_LEVEL`      | `--log.level`  | string | logging level [**default: info**] [**choices: debug, info, warn, error, fatal**] |
+| `LOG_JSON`       | `--log.json`   | bool   | output logs in JSON format                                                       |
+| `LOG_PRETTY`     | `--log.pretty` | bool   | output logs in a pretty colored format (cannot be easily parsed)                 |
 
 ---
 
 <!-- template:begin:support -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
+
 ## :raising_hand_man: Support & Assistance
 
-   * :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for
-     guidelines on ensuring everyone has the best experience interacting with
-     the community.
-   * :raising_hand_man: Take a look at the [support](.github/SUPPORT.md) document on
-     guidelines for tips on how to ask the right questions.
-   * :lady_beetle: For all features/bugs/issues/questions/etc, [head over here](https://github.com/lrstanley/clix/issues/new/choose).
+-   :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for
+    guidelines on ensuring everyone has the best experience interacting with
+    the community.
+-   :raising_hand_man: Take a look at the [support](.github/SUPPORT.md) document on
+    guidelines for tips on how to ask the right questions.
+-   :lady_beetle: For all features/bugs/issues/questions/etc, [head over here](https://github.com/lrstanley/clix/issues/new/choose).
 <!-- template:end:support -->
 
 <!-- template:begin:contributing -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
+
 ## :handshake: Contributing
 
-   * :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for guidelines
-     on ensuring everyone has the best experience interacting with the
-	   community.
-   * :clipboard: Please review the [contributing](.github/CONTRIBUTING.md) doc for submitting
-     issues/a guide on submitting pull requests and helping out.
-   * :old_key: For anything security related, please review this repositories [security policy](https://github.com/lrstanley/clix/security/policy).
+-   :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for guidelines
+    on ensuring everyone has the best experience interacting with the
+    community.
+-   :clipboard: Please review the [contributing](.github/CONTRIBUTING.md) doc for submitting
+    issues/a guide on submitting pull requests and helping out.
+-   :old_key: For anything security related, please review this repositories [security policy](https://github.com/lrstanley/clix/security/policy).
 <!-- template:end:contributing -->
 
 <!-- template:begin:license -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
+
 ## :balance_scale: License
 
 ```
@@ -220,4 +241,5 @@ SOFTWARE.
 ```
 
 _Also located [here](LICENSE)_
+
 <!-- template:end:license -->

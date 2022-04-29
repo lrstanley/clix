@@ -14,13 +14,15 @@ import (
 
 const optionHeader = "| Environment vars | Flags | Type | Description |\n| --- | --- | --- | --- |\n"
 
-// GenerateMarkdown writes generated marakdown to the provided io.Writer.
-func GenerateMarkdown(parser *flags.Parser, out io.Writer) {
-	generateMarkdownRecursive(parser, out)
+// Markdown writes generated marakdown to the provided io.Writer.
+func (cli *CLI[T]) Markdown(out io.Writer) {
+	cli.generateRecursive(out)
 }
 
-func generateMarkdownRecursive(parser *flags.Parser, out io.Writer, groups ...*flags.Group) {
+func (cli *CLI[T]) generateRecursive(out io.Writer, groups ...*flags.Group) {
 	// TODO: commands?
+
+	parser := cli.newParser()
 
 	if groups == nil {
 		groups = parser.Groups()
@@ -74,7 +76,7 @@ func generateMarkdownRecursive(parser *flags.Parser, out io.Writer, groups ...*f
 
 		groups := group.Groups()
 		if len(groups) > 0 {
-			generateMarkdownRecursive(parser, out, groups...)
+			cli.generateRecursive(out, groups...)
 		}
 	}
 }
