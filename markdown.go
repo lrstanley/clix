@@ -2,7 +2,7 @@
 // of this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package goflagsmarkdown
+package clix
 
 import (
 	"fmt"
@@ -14,12 +14,12 @@ import (
 
 const optionHeader = "| Environment vars | Flags | Type | Description |\n| --- | --- | --- | --- |\n"
 
-// Generate writes generated marakdown to the provided io.Writer.
-func Generate(parser *flags.Parser, out io.Writer) {
-	generateRecursive(parser, out)
+// GenerateMarkdown writes generated marakdown to the provided io.Writer.
+func GenerateMarkdown(parser *flags.Parser, out io.Writer) {
+	generateMarkdownRecursive(parser, out)
 }
 
-func generateRecursive(parser *flags.Parser, out io.Writer, groups ...*flags.Group) {
+func generateMarkdownRecursive(parser *flags.Parser, out io.Writer, groups ...*flags.Group) {
 	// TODO: commands?
 
 	if groups == nil {
@@ -74,7 +74,7 @@ func generateRecursive(parser *flags.Parser, out io.Writer, groups ...*flags.Gro
 
 		groups := group.Groups()
 		if len(groups) > 0 {
-			generateRecursive(parser, out, groups...)
+			generateMarkdownRecursive(parser, out, groups...)
 		}
 	}
 }
