@@ -22,37 +22,25 @@ const (
 	OptDisableGlobalLogger                      // Disable setting the global logger for apex/log.
 )
 
-// New returns a new CLI instance, initializes and executes the go-flags
-// parser. Make sure to call Parse() after invoking New().
+// CLI is the main construct for clix. Do not manually set any fields until
+// you've called Parse(). Initialize a new CLI like so:
 //
-// * Use cli.Logger as a apex/log log.Interface.
-// * Use cli.Parser to change/add configuration to the go-flags parser.
-// * Use cli.Args to get the remaining arguments provided to the program.
+//  var (
+//  	logger   log.Interface
+//  	cli    = &clix.CLI[Flags]{} // Where Flags is a user-provided type (struct).
+//  )
 //
-// Example usage:
-//  var logger log.Interface
 //  type Flags struct {
 //  	SomeFlag string `long:"some-flag" description:"some flag"`
 //  }
-//  cli := clix.New[Flags](clix.OptDisableGlobalLogger|clix.OptDisableBuildSettings).Parse()
+//
+//  // [...]
+//  cli.Parse(clix.OptDisableGlobalLogger|clix.OptDisableBuildSettings)
 //  logger = cli.Logger
 //
-// Use it like so:
-//  cli.Flags.SomeFlag  // some value
-//  cli.Debug           // true|false
-//  logger = cli.Logger // initialize your logger using the one from CLI.
-func New[T any](options ...Options) (cli *CLI[T]) {
-	cli = &CLI[T]{
-		Flags: new(T),
-	}
-	cli.Set(options...)
-
-	return cli
-}
-
-// CLI wraps user-provided Flags, with a logger, and Version/Debug helpers.
-// Args contains the arguments passed to the binary, after flags have been
-// parsed.
+// Additional notes:
+// * Use cli.Logger as a apex/log log.Interface (as shown above).
+// * Use cli.Args to get the remaining arguments provided to the program.
 type CLI[T any] struct {
 	// Flags are the user-provided flags.
 	Flags *T
@@ -67,32 +55,27 @@ type CLI[T any] struct {
 	// sets the log level to debug.
 	Debug bool `short:"D" long:"debug" env:"DEBUG" description:"enables debug mode"`
 
-	GenerateMarkdown bool `long:"generate-markdown" hidden:"true" description:"generate markdown documentation and write to stdout"`
+	// GenerateMarkdown can be used to generate markdown documentation for
+	// the cli. clix will intercept and output the documentation to stdout.
+	GenerateMarkdown bool `long:"generate-markdown" hidden:"true" description:"generate markdown documentation and write to stdout" json:"-"`
 
 	// Logger is the generated logger.
-	Logger *log.Logger `json:"-"`
-
-	// Parser is the go-flags parser, which can be used to add/change parser
-	// configurations.
-	// Parser *flags.Parser `json:"-"`
-
+	Logger       *log.Logger  `json:"-"`
 	LoggerConfig LoggerConfig `group:"Logging Options" namespace:"log" env-namespace:"LOG"`
-	options      Options      `json:"-"`
-}
 
-func (cli *CLI[T]) newParser() (p *flags.Parser) {
-	p = flags.NewParser(cli, flags.PrintErrors|flags.HelpFlag|flags.PassDoubleDash)
-
-	p.NamespaceDelimiter = "."
-	p.EnvNamespaceDelimiter = "_"
-
-	return p
+	options Options `json:"-"`
 }
 
 // Parse executes the go-flags parser, returns the remaining arguments, as
 // well as initializes a new logger. If cli.Version is set, it will print
 // the version information (unless disabled).
-func (cli *CLI[T]) Parse() *CLI[T] {
+func (cli *CLI[T]) Parse(options ...Options) *CLI[T] {
+	if cli.Flags == nil {
+		cli.Flags = new(T)
+	}
+
+	cli.Set(options...)
+
 	args, err := cli.newParser().Parse()
 	if err != nil {
 		if FlagErr, ok := err.(*flags.Error); ok && FlagErr.Type == flags.ErrHelp {
@@ -119,6 +102,15 @@ func (cli *CLI[T]) Parse() *CLI[T] {
 	}
 
 	return cli
+}
+
+func (cli *CLI[T]) newParser() (p *flags.Parser) {
+	p = flags.NewParser(cli, flags.PrintErrors|flags.HelpFlag|flags.PassDoubleDash)
+
+	p.NamespaceDelimiter = "."
+	p.EnvNamespaceDelimiter = "_"
+
+	return p
 }
 
 // IsSet returns true if the given option is set.
