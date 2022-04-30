@@ -46,8 +46,6 @@ func (s BuildSetting) String() string {
 	return fmt.Sprintf("%s: %s", s.Key, s.Value)
 }
 
-// TODO: add options for enabling support/contributing/security links?
-
 type VersionInfo[T any] struct {
 	Name         string         `json:"name"`                     // Name of cli tool.
 	Version      string         `json:"build_version"`            // Build version.
