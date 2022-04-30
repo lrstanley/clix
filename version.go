@@ -223,7 +223,7 @@ func (cli *CLI[T]) GetVersionInfo() *VersionInfo[T] {
 		}
 
 		if v.Date == "" {
-			v.Date = v.GetSetting("vcs.date", "unknown")
+			v.Date = v.GetSetting("vcs.time", "unknown")
 		}
 	} else {
 		if v.Name == "" {
