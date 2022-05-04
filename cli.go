@@ -13,6 +13,7 @@ import (
 	"github.com/apex/log"
 	"github.com/gookit/color"
 	flags "github.com/jessevdk/go-flags"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 // Options allows overriding default logic.

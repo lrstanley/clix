@@ -46,6 +46,7 @@ func (s BuildSetting) String() string {
 	return fmt.Sprintf("%s: %s", s.Key, s.Value)
 }
 
+// VersionInfo represents the version information for the CLI.
 type VersionInfo[T any] struct {
 	Name         string         `json:"name"`                     // Name of cli tool.
 	Version      string         `json:"build_version"`            // Build version.
@@ -65,6 +66,7 @@ type VersionInfo[T any] struct {
 	cli *CLI[T] `json:"-"`
 }
 
+// NonSensitive returns a copy of VersionInfo with sensitive information removed.
 func (v *VersionInfo[T]) NonSensitive() VersionInfo[T] {
 	return VersionInfo[T]{
 		Name:    v.Name,
@@ -81,6 +83,8 @@ func (v *VersionInfo[T]) NonSensitive() VersionInfo[T] {
 	}
 }
 
+// GetSetting returns the value of the setting with the given key, otherwise
+// defaults to defaultValue.
 func (v *VersionInfo[T]) GetSetting(key, defaultValue string) string {
 	if v.Settings == nil {
 		return defaultValue
@@ -165,6 +169,7 @@ func (v *VersionInfo[T]) String() string {
 	return color.Sprint(w.String())
 }
 
+// GetVersionInfo returns the version information for the CLI.
 func (cli *CLI[T]) GetVersionInfo() *VersionInfo[T] {
 	var v VersionInfo[T]
 

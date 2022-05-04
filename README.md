@@ -9,7 +9,6 @@
     <img title="Last commit" src="https://img.shields.io/github/last-commit/lrstanley/clix?style=flat-square">
   </a>
 
-
   <a href="https://github.com/lrstanley/clix/actions?query=workflow%3Atest+event%3Apush">
     <img title="GitHub Workflow Status (test @ master)" src="https://img.shields.io/github/workflow/status/lrstanley/clix/test/master?label=test&style=flat-square&event=push">
   </a>
@@ -46,30 +45,53 @@
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ## :link: Table of Contents
 
-  - [TODO](#ballot_box_with_check-todo)
-  - [Usage](#gear-usage)
-  - [Example help output](#example-help-output)
-  - [Generate Markdown](#generate-markdown)
-    - [Example output](#example-output)
-      - [Application Options](#application-options)
-      - [Example Group](#example-group)
-      - [Logging Options](#logging-options)
-  - [Support &amp; Assistance](#raising_hand_man-support--assistance)
-  - [Contributing](#handshake-contributing)
-  - [License](#balance_scale-license)
+- [TODO](#ballot_box_with_check-todo)
+- [Usage](#gear-usage)
+- [Example help output](#example-help-output)
+- [Generate Markdown](#generate-markdown)
+  - [Example output](#example-output)
+    - [Application Options](#application-options)
+    - [Example Group](#example-group)
+    - [Logging Options](#logging-options)
+- [Support &amp; Assistance](#raising_hand_man-support--assistance)
+- [Contributing](#handshake-contributing)
+- [License](#balance_scale-license)
 <!-- template:end:toc -->
+
+## :sparkles: Features
+
+- go-flags wrapper, that handles parsing and decoding, with additional
+  helpers. Uses Go 1.18's generics to allow embedding your own custom struct.
+- Auto-generated logger, and auto-provided logger flags that:
+  - allows users to switch between plain-text, colored/pretty, JSON output
+    (and quiet for no output).
+  - Allows configuring the level dynamically.
+  - Uses the built-in debug flag to automatically change the logging level.
+- Built-in `--debug` flag.
+- Built-in `--version` flag that provides a lot of useful features:
+  - Using Go 1.18's build metadata, the ability to use that as the version
+    info, automatically using VCS information if available.
+  - Printing dependencies and build flags.
+  - Embedding useful links (support, repo, homepage, etc) in both version
+    output, and help output.
+  - Colored output!
+- `--generate-markdown` flag (hidden) that allows generating markdown from
+  the CLI's help information (see below!).
+- Uses [godotenv](github.com/joho/godotenv) to auto-load environment variables
+  from `.env` files, before parsing flags.
+- Many flags to enable/disable functionality to suit your needs.
 
 ## :ballot_box_with_check: TODO
 
--   [ ] Generate commands/sub-commands/etc ([example](https://github.com/jessevdk/go-flags/pull/364))
--   [ ] Custom markdown formatting
+- [ ] Generate commands/sub-commands/etc ([example](https://github.com/jessevdk/go-flags/pull/364))
+- [ ] Custom markdown formatting
 
 ## :gear: Usage
 
 <!-- template:begin:goget -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ```console
-$ go get -u github.com/lrstanley/clix@latest
+go get -u github.com/lrstanley/clix@latest
 ```
 <!-- template:end:goget -->
 
@@ -79,38 +101,38 @@ Example:
 package main
 
 import (
-	"github.com/apex/log"
-	clix "github.com/lrstanley/clix"
+ "github.com/apex/log"
+ clix "github.com/lrstanley/clix"
 )
 
 var (
   cli = &clix.CLI[Flags]{
-		Links: clix.GithubLinks("github.com/lrstanley/myproject", "master", "https://mysite.com"),
-	}
-	logger log.Interface
+  Links: clix.GithubLinks("github.com/lrstanley/myproject", "master", "https://mysite.com"),
+ }
+ logger log.Interface
 )
 
 type Flags struct {
-	EnableHTTP bool   `short:"e" long:"enable-http" description:"enable the http server"`
-	File       string `env:"FILE" short:"f" long:"file" description:"some file that does something"`
+ EnableHTTP bool   `short:"e" long:"enable-http" description:"enable the http server"`
+ File       string `env:"FILE" short:"f" long:"file" description:"some file that does something"`
 
-	SubFlags struct {
-		Username string `env:"USERNAME" short:"u" long:"username" default:"admin" description:"example username"`
-		Password string `env:"PASSWORD" short:"p" long:"password" description:"example password"`
-	} `group:"Example Group" namespace:"example" env-namespace:"EXAMPLE"`
+ SubFlags struct {
+  Username string `env:"USERNAME" short:"u" long:"username" default:"admin" description:"example username"`
+  Password string `env:"PASSWORD" short:"p" long:"password" description:"example password"`
+ } `group:"Example Group" namespace:"example" env-namespace:"EXAMPLE"`
 }
 
 func main() {
-	// Initializes cli flags, and a pre-configured logger, based off user-provided
-	// flags (e.g. --log.json, --log.level, etc). Also automatically handles
-	// --version, --help, etc.
-	cli.Parse()
-	logger = cli.Logger
+ // Initializes cli flags, and a pre-configured logger, based off user-provided
+ // flags (e.g. --log.json, --log.level, etc). Also automatically handles
+ // --version, --help, etc.
+ cli.Parse()
+ logger = cli.Logger
 
-	logger.WithFields(log.Fields{
-		"debug":     cli.Debug,
-		"file_path": cli.Flags.File,
-	}).Info("hello world")
+ logger.WithFields(log.Fields{
+  "debug":     cli.Debug,
+  "file_path": cli.Flags.File,
+ }).Info("hello world")
 }
 ```
 
@@ -169,7 +191,7 @@ flag `--generate-markdown`, which is a hidden flag. This will print the markdown
 to stdout.
 
 ```console
-$ ./<my-script> --generate-markdown > USAGE.md
+./<my-script> --generate-markdown > USAGE.md
 ```
 
 ### Example output
@@ -238,24 +260,24 @@ Generated:
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ## :raising_hand_man: Support & Assistance
 
-   * :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for
+- :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for
      guidelines on ensuring everyone has the best experience interacting with
      the community.
-   * :raising_hand_man: Take a look at the [support](.github/SUPPORT.md) document on
+- :raising_hand_man: Take a look at the [support](.github/SUPPORT.md) document on
      guidelines for tips on how to ask the right questions.
-   * :lady_beetle: For all features/bugs/issues/questions/etc, [head over here](https://github.com/lrstanley/clix/issues/new/choose).
+- :lady_beetle: For all features/bugs/issues/questions/etc, [head over here](https://github.com/lrstanley/clix/issues/new/choose).
 <!-- template:end:support -->
 
 <!-- template:begin:contributing -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ## :handshake: Contributing
 
-   * :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for guidelines
+- :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for guidelines
      on ensuring everyone has the best experience interacting with the
-	   community.
-   * :clipboard: Please review the [contributing](.github/CONTRIBUTING.md) doc for submitting
+    community.
+- :clipboard: Please review the [contributing](.github/CONTRIBUTING.md) doc for submitting
      issues/a guide on submitting pull requests and helping out.
-   * :old_key: For anything security related, please review this repositories [security policy](https://github.com/lrstanley/clix/security/policy).
+- :old_key: For anything security related, please review this repositories [security policy](https://github.com/lrstanley/clix/security/policy).
 <!-- template:end:contributing -->
 
 <!-- template:begin:license -->
