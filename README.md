@@ -9,6 +9,7 @@
     <img title="Last commit" src="https://img.shields.io/github/last-commit/lrstanley/clix?style=flat-square">
   </a>
 
+
   <a href="https://github.com/lrstanley/clix/actions?query=workflow%3Atest+event%3Apush">
     <img title="GitHub Workflow Status (test @ master)" src="https://img.shields.io/github/workflow/status/lrstanley/clix/test/master?label=test&style=flat-square&event=push">
   </a>
@@ -45,17 +46,18 @@
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ## :link: Table of Contents
 
-- [TODO](#ballot_box_with_check-todo)
-- [Usage](#gear-usage)
-- [Example help output](#example-help-output)
-- [Generate Markdown](#generate-markdown)
-  - [Example output](#example-output)
-    - [Application Options](#application-options)
-    - [Example Group](#example-group)
-    - [Logging Options](#logging-options)
-- [Support &amp; Assistance](#raising_hand_man-support--assistance)
-- [Contributing](#handshake-contributing)
-- [License](#balance_scale-license)
+  - [Features](#sparkles-features)
+  - [TODO](#ballot_box_with_check-todo)
+  - [Usage](#gear-usage)
+  - [Example help output](#example-help-output)
+  - [Generate Markdown](#generate-markdown)
+    - [Example output](#example-output)
+      - [Application Options](#application-options)
+      - [Example Group](#example-group)
+      - [Logging Options](#logging-options)
+  - [Support &amp; Assistance](#raising_hand_man-support--assistance)
+  - [Contributing](#handshake-contributing)
+  - [License](#balance_scale-license)
 <!-- template:end:toc -->
 
 ## :sparkles: Features
@@ -91,7 +93,7 @@
 <!-- template:begin:goget -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ```console
-go get -u github.com/lrstanley/clix@latest
+$ go get -u github.com/lrstanley/clix@latest
 ```
 <!-- template:end:goget -->
 
@@ -260,24 +262,24 @@ Generated:
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ## :raising_hand_man: Support & Assistance
 
-- :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for
+   * :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for
      guidelines on ensuring everyone has the best experience interacting with
      the community.
-- :raising_hand_man: Take a look at the [support](.github/SUPPORT.md) document on
+   * :raising_hand_man: Take a look at the [support](.github/SUPPORT.md) document on
      guidelines for tips on how to ask the right questions.
-- :lady_beetle: For all features/bugs/issues/questions/etc, [head over here](https://github.com/lrstanley/clix/issues/new/choose).
+   * :lady_beetle: For all features/bugs/issues/questions/etc, [head over here](https://github.com/lrstanley/clix/issues/new/choose).
 <!-- template:end:support -->
 
 <!-- template:begin:contributing -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ## :handshake: Contributing
 
-- :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for guidelines
+   * :heart: Please review the [Code of Conduct](.github/CODE_OF_CONDUCT.md) for guidelines
      on ensuring everyone has the best experience interacting with the
-    community.
-- :clipboard: Please review the [contributing](.github/CONTRIBUTING.md) doc for submitting
+	   community.
+   * :clipboard: Please review the [contributing](.github/CONTRIBUTING.md) doc for submitting
      issues/a guide on submitting pull requests and helping out.
-- :old_key: For anything security related, please review this repositories [security policy](https://github.com/lrstanley/clix/security/policy).
+   * :old_key: For anything security related, please review this repositories [security policy](https://github.com/lrstanley/clix/security/policy).
 <!-- template:end:contributing -->
 
 <!-- template:begin:license -->
