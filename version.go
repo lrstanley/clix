@@ -244,22 +244,22 @@ func (cli *CLI[T]) GetVersionInfo() *VersionInfo[T] {
 		if v.Date == "" {
 			v.Date = v.GetSetting("vcs.time", "unknown")
 		}
-	} else {
-		if v.Name == "" {
-			v.Name = v.Command
-		}
+	}
 
-		if v.Version == "" {
-			v.Version = "unknown"
-		}
+	if v.Name == "" {
+		v.Name = v.Command
+	}
 
-		if v.Commit == "" {
-			v.Commit = "unknown"
-		}
+	if v.Version == "" {
+		v.Version = "unknown"
+	}
 
-		if v.Date == "" {
-			v.Date = "unknown"
-		}
+	if v.Commit == "" {
+		v.Commit = "unknown"
+	}
+
+	if v.Date == "" {
+		v.Date = "unknown"
 	}
 
 	return &v
