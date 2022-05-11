@@ -66,9 +66,25 @@ type VersionInfo[T any] struct {
 	cli *CLI[T] `json:"-"`
 }
 
+// NonSensitiveVersion represents the version information for the CLI.
+type NonSensitiveVersion struct {
+	Name    string `json:"name"`          // Name of cli tool.
+	Version string `json:"build_version"` // Build version.
+	Commit  string `json:"build_commit"`  // VCS commit SHA.
+	Date    string `json:"build_date"`    // VCS commit date.
+
+	Command   string `json:"command"`    // Executable name where the command was called from.
+	GoVersion string `json:"go_version"` // Version of Go that produced this binary.
+	OS        string `json:"os"`         // Operating system for this build.
+	Arch      string `json:"arch"`       // CPU Architecture for build build.
+
+	// Items hoisted from the parent CLI. Do not change this.
+	Links []Link `json:"links,omitempty"`
+}
+
 // NonSensitive returns a copy of VersionInfo with sensitive information removed.
-func (v *VersionInfo[T]) NonSensitive() VersionInfo[T] {
-	return VersionInfo[T]{
+func (v *VersionInfo[T]) NonSensitive() *NonSensitiveVersion {
+	return &NonSensitiveVersion{
 		Name:    v.Name,
 		Version: v.Version,
 		Commit:  v.Commit,
