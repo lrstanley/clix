@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/apex/log v1.9.0
-	github.com/gookit/color v1.5.0
+	github.com/gookit/color v1.5.1
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/joho/godotenv v1.4.0
 )
