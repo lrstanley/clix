@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/apex/log"
+	logcli "github.com/apex/log/handlers/cli"
 	"github.com/apex/log/handlers/discard"
 	"github.com/apex/log/handlers/json"
 	"github.com/apex/log/handlers/logfmt"
@@ -40,11 +41,14 @@ type LoggerConfig struct {
 
 	// Pretty enables cli-friendly logging.
 	Pretty bool `env:"PRETTY" long:"pretty" description:"output logs in a pretty colored format (cannot be easily parsed)"`
+
+	// Path is the path to the log file.
+	Path string `env:"PATH" long:"path" description:"path to log file (disables stdout logging)"`
 }
 
 // new parses LoggerConfig and creates a new structured logger with the
 // provided configuration.
-func (cli *CLI[T]) newLogger() {
+func (cli *CLI[T]) newLogger() error {
 	cli.Logger = &log.Logger{}
 
 	if cli.LoggerConfig.Level == "" {
@@ -60,6 +64,15 @@ func (cli *CLI[T]) newLogger() {
 	}
 
 	switch {
+	case cli.LoggerConfig.Path != "":
+		f, err := os.OpenFile(cli.LoggerConfig.Path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		if err != nil {
+			return err
+		}
+
+		// We can't really close the file here.
+
+		cli.Logger.Handler = logcli.New(f)
 	case cli.LoggerConfig.Quiet:
 		cli.Logger.Handler = discard.New()
 	case cli.LoggerConfig.JSON:
@@ -74,4 +87,6 @@ func (cli *CLI[T]) newLogger() {
 		log.SetLevel(cli.Logger.Level)
 		log.SetHandler(cli.Logger.Handler)
 	}
+
+	return nil
 }
