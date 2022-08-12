@@ -47,18 +47,7 @@
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ## :link: Table of Contents
 
-  - [Features](#sparkles-features)
-  - [TODO](#ballot_box_with_check-todo)
-  - [Usage](#gear-usage)
-  - [Example help output](#example-help-output)
-  - [Generate Markdown](#generate-markdown)
-    - [Example output](#example-output)
-      - [Application Options](#application-options)
-      - [Example Group](#example-group)
-      - [Logging Options](#logging-options)
-  - [Support &amp; Assistance](#raising_hand_man-support--assistance)
-  - [Contributing](#handshake-contributing)
-  - [License](#balance_scale-license)
+  - []()
 <!-- template:end:toc -->
 
 ## :sparkles: Features
