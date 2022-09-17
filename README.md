@@ -1,7 +1,13 @@
+<!-- template:define:options
+{
+  "nodescription": true
+}
+-->
+![logo](https://liam.sh/-/gh/svg/lrstanley/clix?icon=material-symbols%3Aterminal&icon.height=100&layout=left&icon.color=rgba%2839%2C+132%2C+85%2C+1%29&font=1.2)
+
 <!-- template:begin:header -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
 
-<p align="center">clix -- go-flags wrapper with useful helpers</p>
 <p align="center">
   <a href="https://github.com/lrstanley/clix/tags">
     <img title="Latest Semver Tag" src="https://img.shields.io/github/v/tag/lrstanley/clix?style=flat-square">
