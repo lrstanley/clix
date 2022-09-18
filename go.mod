@@ -7,15 +7,17 @@ require (
 	github.com/gookit/color v1.5.2
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/joho/godotenv v1.4.0
+	golang.org/x/sync v0.0.0-20220907140024-f12130a52804
 )
 
 require (
-	github.com/fatih/color v1.7.0 // indirect
-	github.com/go-logfmt/logfmt v0.4.0 // indirect
-	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 // indirect
-	github.com/mattn/go-colorable v0.1.2 // indirect
-	github.com/mattn/go-isatty v0.0.8 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
-	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
-	golang.org/x/sys v0.0.0-20210330210617-4fbd30eecc44 // indirect
+	github.com/fatih/color v1.13.0 // indirect
+	github.com/go-logfmt/logfmt v0.5.1 // indirect
+	github.com/kr/logfmt v0.0.0-20210122060352-19f9bcb100e6 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
+	golang.org/x/net v0.0.0-20220909164309-bea034e7d591 // indirect
+	golang.org/x/sys v0.0.0-20220915200043-7b5979e65e41 // indirect
 )
