@@ -25,6 +25,7 @@ const (
 	OptDisableDeps                              // Disable dependency printing in version output.
 	OptDisableBuildSettings                     // Disable build info printing in version output.
 	OptDisableGlobalLogger                      // Disable setting the global logger for apex/log.
+	OptSubcommandsOptional                      // Subcommands are optional.
 )
 
 // CLI is the main construct for clix. Do not manually set any fields until
@@ -87,7 +88,17 @@ type CLI[T any] struct {
 // Parse executes the go-flags parser, returns the remaining arguments, as
 // well as initializes a new logger. If cli.Version is set, it will print
 // the version information (unless disabled).
-func (cli *CLI[T]) Parse(options ...Options) *CLI[T] {
+func (cli *CLI[T]) Parse(options ...Options) {
+	_ = cli.ParseWithInit(nil, options...)
+}
+
+// ParseWithInit executes the go-flags parser with the provided init function,
+// returns the remaining arguments, as well as initializes a new logger. If
+// cli.Version is set, it will print the version information (unless disabled).
+//
+// Prefer using Parse() unless you're using sub-commands and want to run some
+// initialization logic before the sub-command if invoked.
+func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error {
 	if cli.Flags == nil {
 		cli.Flags = new(T)
 	}
@@ -96,7 +107,55 @@ func (cli *CLI[T]) Parse(options ...Options) *CLI[T] {
 	cli.VersionInfo = cli.GetVersionInfo()
 
 	parser := cli.newParser()
-	parser.LongDescription = color.Sprint(cli.VersionInfo.stringBase())
+	parser.CommandHandler = func(command flags.Commander, args []string) error {
+		cli.Args = args
+
+		// Initialize the logger.
+		if !cli.IsSet(OptDisableLogging) {
+			cli.newLogger()
+		}
+
+		if (cli.Version.EnabledJSON) && !cli.IsSet(OptDisableVersion) {
+			enc := json.NewEncoder(os.Stdout)
+			enc.SetIndent("", "    ")
+			if err := enc.Encode(cli.VersionInfo); err != nil {
+				panic(err)
+			}
+			os.Exit(1)
+		}
+
+		if (cli.Version.Enabled) && !cli.IsSet(OptDisableVersion) {
+			fmt.Println(cli.VersionInfo.String())
+			os.Exit(1)
+		}
+
+		if cli.GenerateMarkdown {
+			cli.Markdown(os.Stdout)
+			os.Exit(0)
+		}
+
+		if !cli.IsSet(OptDisableLogging) {
+			cli.Logger.WithFields(log.Fields{
+				"name":       cli.VersionInfo.Name,
+				"version":    cli.VersionInfo.Version,
+				"commit":     cli.VersionInfo.Commit,
+				"go_version": cli.VersionInfo.GoVersion,
+				"os":         cli.VersionInfo.OS,
+				"arch":       cli.VersionInfo.Arch,
+			}).Debug("logger initialized")
+		}
+
+		if command != nil {
+			err := initFn()
+			if err != nil {
+				return err
+			}
+
+			return command.Execute(args)
+		}
+
+		return nil
+	}
 
 	args, err := parser.Parse()
 	if err != nil {
@@ -107,43 +166,7 @@ func (cli *CLI[T]) Parse(options ...Options) *CLI[T] {
 	}
 
 	cli.Args = args
-
-	// Initialize the logger.
-	if !cli.IsSet(OptDisableLogging) {
-		cli.newLogger()
-	}
-
-	if (cli.Version.EnabledJSON) && !cli.IsSet(OptDisableVersion) {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "    ")
-		if err := enc.Encode(cli.VersionInfo); err != nil {
-			panic(err)
-		}
-		os.Exit(1)
-	}
-
-	if (cli.Version.Enabled) && !cli.IsSet(OptDisableVersion) {
-		fmt.Println(cli.VersionInfo.String())
-		os.Exit(1)
-	}
-
-	if cli.GenerateMarkdown {
-		cli.Markdown(os.Stdout)
-		os.Exit(0)
-	}
-
-	if !cli.IsSet(OptDisableLogging) {
-		cli.Logger.WithFields(log.Fields{
-			"name":       cli.VersionInfo.Name,
-			"version":    cli.VersionInfo.Version,
-			"commit":     cli.VersionInfo.Commit,
-			"go_version": cli.VersionInfo.GoVersion,
-			"os":         cli.VersionInfo.OS,
-			"arch":       cli.VersionInfo.Arch,
-		}).Debug("logger initialized")
-	}
-
-	return cli
+	return err
 }
 
 func (cli *CLI[T]) newParser() (p *flags.Parser) {
@@ -151,6 +174,12 @@ func (cli *CLI[T]) newParser() (p *flags.Parser) {
 
 	p.NamespaceDelimiter = "."
 	p.EnvNamespaceDelimiter = "_"
+
+	if cli.IsSet(OptSubcommandsOptional) {
+		p.SubcommandsOptional = true
+	}
+
+	p.LongDescription = color.Sprint(cli.VersionInfo.stringBase())
 
 	return p
 }
