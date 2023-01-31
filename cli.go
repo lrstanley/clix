@@ -30,18 +30,18 @@ const (
 // CLI is the main construct for clix. Do not manually set any fields until
 // you've called Parse(). Initialize a new CLI like so:
 //
-//  var (
-//  	logger   log.Interface
-//  	cli    = &clix.CLI[Flags]{} // Where Flags is a user-provided type (struct).
-//  )
+//	var (
+//		logger   log.Interface
+//		cli    = &clix.CLI[Flags]{} // Where Flags is a user-provided type (struct).
+//	)
 //
-//  type Flags struct {
-//  	SomeFlag string `long:"some-flag" description:"some flag"`
-//  }
+//	type Flags struct {
+//		SomeFlag string `long:"some-flag" description:"some flag"`
+//	}
 //
-//  // [...]
-//  cli.Parse(clix.OptDisableGlobalLogger|clix.OptDisableBuildSettings)
-//  logger = cli.Logger
+//	// [...]
+//	cli.Parse(clix.OptDisableGlobalLogger|clix.OptDisableBuildSettings)
+//	logger = cli.Logger
 //
 // Additional notes:
 // * Use cli.Logger as a apex/log log.Interface (as shown above).
@@ -140,7 +140,7 @@ func (cli *CLI[T]) Parse(options ...Options) *CLI[T] {
 			"go_version": cli.VersionInfo.GoVersion,
 			"os":         cli.VersionInfo.OS,
 			"arch":       cli.VersionInfo.Arch,
-		}).Info("logger initialized")
+		}).Debug("logger initialized")
 	}
 
 	return cli
