@@ -51,6 +51,12 @@ type CLI[T any] struct {
 	// Flags are the user-provided flags.
 	Flags *T
 
+	// Parser is the flags parser, this is only set after Parse() is called.
+	//
+	// NOTE: the "no-flag" struct field is required, otherwise the parser will parse
+	// itself recursively, maxing out the stack.
+	Parser *flags.Parser `no-flag:"true"`
+
 	// VersionInfo is the version information for the CLI. You can provide
 	// a custom version of this if you already have version information.
 	VersionInfo *VersionInfo[T] `json:"version_info"`
@@ -106,8 +112,8 @@ func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error 
 	cli.Set(options...)
 	cli.VersionInfo = cli.GetVersionInfo()
 
-	parser := cli.newParser()
-	parser.CommandHandler = func(command flags.Commander, args []string) error {
+	cli.Parser = cli.newParser()
+	cli.Parser.CommandHandler = func(command flags.Commander, args []string) error {
 		cli.Args = args
 
 		// Initialize the logger.
@@ -157,7 +163,7 @@ func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error 
 		return nil
 	}
 
-	args, err := parser.Parse()
+	args, err := cli.Parser.Parse()
 	if err != nil {
 		if FlagErr, ok := err.(*flags.Error); ok && FlagErr.Type == flags.ErrHelp {
 			os.Exit(0)
@@ -169,6 +175,7 @@ func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error 
 	return err
 }
 
+// newParser returns a new flags parser. However, it does not set CLI[T].Parser.
 func (cli *CLI[T]) newParser() (p *flags.Parser) {
 	p = flags.NewParser(cli, flags.PrintErrors|flags.HelpFlag|flags.PassDoubleDash)
 
