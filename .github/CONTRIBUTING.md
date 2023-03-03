@@ -101,6 +101,6 @@ Below are a few guidelines if you would like to contribute:
 [discussions]: https://github.com/lrstanley/clix/discussions
 [issues]: https://github.com/lrstanley/clix/issues/new/choose
 [license]: https://github.com/lrstanley/clix/blob/master/LICENSE
-[pull-requests]: https://github.com/lrstanley/clix/issues/new/choose
+[pull-requests]: https://github.com/lrstanley/clix/pulls?q=is%3Aopen+is%3Apr
 [security]: https://github.com/lrstanley/clix/security/policy
 [support]: https://github.com/lrstanley/clix/blob/master/.github/SUPPORT.md
