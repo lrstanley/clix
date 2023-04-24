@@ -187,16 +187,13 @@ func (v *VersionInfo[T]) String() string {
 
 // GetVersionInfo returns the version information for the CLI.
 func (cli *CLI[T]) GetVersionInfo() *VersionInfo[T] {
-	var v VersionInfo[T]
+	v := VersionInfo[T]{}
 
-	if cli.VersionInfo == nil {
-		v = VersionInfo[T]{}
-	} else {
-		v = *cli.VersionInfo
-		v.Dependencies = make([]Module, len(v.Dependencies))
-		v.Settings = make([]BuildSetting, len(v.Settings))
-		copy(v.Dependencies, v.Dependencies)
-		copy(v.Settings, v.Settings)
+	if cli.VersionInfo != nil {
+		v.Name = cli.VersionInfo.Name
+		v.Version = cli.VersionInfo.Version
+		v.Commit = cli.VersionInfo.Commit
+		v.Date = cli.VersionInfo.Date
 	}
 
 	v.cli = cli
