@@ -1,12 +1,13 @@
 module github.com/lrstanley/clix
 
-go 1.18
+go 1.21
 
 require (
 	github.com/apex/log v1.9.0
 	github.com/gookit/color v1.5.4
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/joho/godotenv v1.5.1
+	github.com/sethvargo/go-githubactions v1.2.0
 	golang.org/x/sync v0.6.0
 )
 

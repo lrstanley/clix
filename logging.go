@@ -13,6 +13,7 @@ import (
 	"github.com/apex/log/handlers/json"
 	"github.com/apex/log/handlers/logfmt"
 	"github.com/apex/log/handlers/text"
+	"github.com/lrstanley/clix/githubhandler"
 )
 
 // LoggerConfig are the flags that define how log entries are processed/returned.
@@ -23,12 +24,12 @@ import (
 //
 // Example (where you can set LOG_LEVEL as an environment variable, for example):
 //
-//   type Flags struct {
-//   	Debug    bool               `long:"debug" env:"DEBUG" description:"enable debugging"`
-//   	Log      *chix.LoggerConfig `group:"Logging Options" namespace:"log" env-namespace:"LOG"`
-//   }
-//   [...]
-//   cli.Log.New(cli.Debug)
+//	type Flags struct {
+//		Debug    bool               `long:"debug" env:"DEBUG" description:"enable debugging"`
+//		Log      *chix.LoggerConfig `group:"Logging Options" namespace:"log" env-namespace:"LOG"`
+//	}
+//	[...]
+//	cli.Log.New(cli.Debug)
 type LoggerConfig struct {
 	// Quiet disables all logging.
 	Quiet bool `env:"QUIET" long:"quiet" description:"disable logging to stdout (also: see levels)"`
@@ -38,6 +39,9 @@ type LoggerConfig struct {
 
 	// JSON enables JSON logging.
 	JSON bool `env:"JSON" long:"json" description:"output logs in JSON format"`
+
+	// Github enables GitHub Actions logging.
+	Github bool `env:"GITHUB" long:"github" description:"output logs in GitHub Actions format"`
 
 	// Pretty enables cli-friendly logging.
 	Pretty bool `env:"PRETTY" long:"pretty" description:"output logs in a pretty colored format (cannot be easily parsed)"`
@@ -65,7 +69,7 @@ func (cli *CLI[T]) newLogger() error {
 
 	switch {
 	case cli.LoggerConfig.Path != "":
-		f, err := os.OpenFile(cli.LoggerConfig.Path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		f, err := os.OpenFile(cli.LoggerConfig.Path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644)
 		if err != nil {
 			return err
 		}
@@ -73,6 +77,10 @@ func (cli *CLI[T]) newLogger() error {
 		// We can't really close the file here.
 
 		cli.Logger.Handler = logcli.New(f)
+	case cli.LoggerConfig.Github:
+		// Since debug is by default masked unless debugging is enabled in Actions.
+		cli.Logger.Level = log.DebugLevel
+		cli.Logger.Handler = githubhandler.New(os.Stdout)
 	case cli.LoggerConfig.Quiet:
 		cli.Logger.Handler = discard.New()
 	case cli.LoggerConfig.JSON:
