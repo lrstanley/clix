@@ -58,7 +58,7 @@ type VersionInfo[T any] struct {
 	Command   string `json:"command"`    // Executable name where the command was called from.
 	GoVersion string `json:"go_version"` // Version of Go that produced this binary.
 	OS        string `json:"os"`         // Operating system for this build.
-	Arch      string `json:"arch"`       // CPU Architecture for build build.
+	Arch      string `json:"arch"`       // CPU Architecture for this build.
 
 	// Items hoisted from the parent CLI. Do not change this.
 	Links []Link `json:"links,omitempty"`
@@ -76,7 +76,7 @@ type NonSensitiveVersion struct {
 	Command   string `json:"command"`    // Executable name where the command was called from.
 	GoVersion string `json:"go_version"` // Version of Go that produced this binary.
 	OS        string `json:"os"`         // Operating system for this build.
-	Arch      string `json:"arch"`       // CPU Architecture for build build.
+	Arch      string `json:"arch"`       // CPU Architecture for this build.
 
 	// Items hoisted from the parent CLI. Do not change this.
 	Links []Link `json:"links,omitempty"`
