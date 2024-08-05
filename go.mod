@@ -8,7 +8,7 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/sethvargo/go-githubactions v1.2.0
-	golang.org/x/sync v0.6.0
+	golang.org/x/sync v0.8.0
 )
 
 require (
