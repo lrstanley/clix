@@ -22,9 +22,9 @@ func (cli *CLI[T]) NewContext(ctx context.Context) context.Context {
 }
 
 // NewHTTPContext is an http middleware that injects the CLI[T] into the context.
-func (cli *CLI[T]) NewHTTPContext(next http.HandlerFunc) http.Handler {
+func (cli *CLI[T]) NewHTTPContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next(w, r.WithContext(cli.NewContext(r.Context())))
+		next.ServeHTTP(w, r.WithContext(cli.NewContext(r.Context())))
 	})
 }
 
