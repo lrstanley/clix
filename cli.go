@@ -230,7 +230,7 @@ func GithubLinks(repo, branch, homepage string) []Link {
 	}
 
 	links = append(links, []Link{
-		{Name: "github", URL: fmt.Sprintf("https://%s", repo)},
+		{Name: "github", URL: "https://" + repo},
 		{Name: "issues", URL: fmt.Sprintf("https://%s/issues/new/choose", repo)},
 		{Name: "support", URL: fmt.Sprintf("https://%s/blob/%s/.github/SUPPORT.md", repo, branch)},
 		{Name: "contributing", URL: fmt.Sprintf("https://%s/blob/%s/.github/CONTRIBUTING.md", repo, branch)},
