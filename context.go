@@ -4,7 +4,10 @@
 
 package clix
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 type contextKey string
 
@@ -16,6 +19,13 @@ const (
 // from the context with [FromContext].
 func (cli *CLI[T]) NewContext(ctx context.Context) context.Context {
 	return context.WithValue(ctx, contextKeyCLI, cli)
+}
+
+// NewHTTPContext is an http middleware that injects the CLI[T] into the context.
+func (cli *CLI[T]) NewHTTPContext(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		next(w, r.WithContext(cli.NewContext(r.Context())))
+	}
 }
 
 // FromContext returns the CLI[T] from the context, or nil if it is not present.
