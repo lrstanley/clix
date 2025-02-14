@@ -22,10 +22,10 @@ func (cli *CLI[T]) NewContext(ctx context.Context) context.Context {
 }
 
 // NewHTTPContext is an http middleware that injects the CLI[T] into the context.
-func (cli *CLI[T]) NewHTTPContext(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (cli *CLI[T]) NewHTTPContext(next http.HandlerFunc) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next(w, r.WithContext(cli.NewContext(r.Context())))
-	}
+	})
 }
 
 // FromContext returns the CLI[T] from the context, or nil if it is not present.
