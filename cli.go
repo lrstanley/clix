@@ -14,7 +14,7 @@ import (
 	"github.com/apex/log"
 	"github.com/gookit/color"
 	flags "github.com/jessevdk/go-flags"
-	_ "github.com/joho/godotenv/autoload"
+	_ "github.com/joho/godotenv/autoload" // Load .env files automatically.
 )
 
 // Options allows overriding default logic.
@@ -127,7 +127,11 @@ func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error 
 
 		// Initialize the logger.
 		if !cli.IsSet(OptDisableLogging) {
-			cli.newLogger()
+			err := cli.newLogger()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "clix: error initializing logger: %v", err)
+				os.Exit(1)
+			}
 		}
 
 		if (cli.Version.EnabledJSON) && !cli.IsSet(OptDisableVersion) {
@@ -140,7 +144,7 @@ func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error 
 		}
 
 		if (cli.Version.Enabled) && !cli.IsSet(OptDisableVersion) {
-			fmt.Println(cli.VersionInfo.String())
+			fmt.Println(cli.VersionInfo.String()) //nolint:forbidigo
 			os.Exit(1)
 		}
 

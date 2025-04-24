@@ -81,7 +81,7 @@ func (h *Handler) HandleLog(e *log.Entry) error {
 			}
 
 			githubSpecific[name] = v
-			names = append(names[:i], names[i+1:]...) // Delete from slice.
+			names = slices.Delete(names, i, i+1) // Delete from slice.
 		}
 	}
 
