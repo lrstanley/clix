@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/apex/log"
@@ -25,6 +26,7 @@ const (
 	OptDisableDeps                              // Disable dependency printing in version output.
 	OptDisableBuildSettings                     // Disable build info printing in version output.
 	OptDisableGlobalLogger                      // Disable setting the global logger for apex/log.
+	OptDisableGithubDebug                       // Disable github debug logging.
 	OptSubcommandsOptional                      // Subcommands are optional.
 )
 
@@ -110,6 +112,13 @@ func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error 
 	}
 
 	cli.Set(options...)
+
+	if !cli.IsSet(OptDisableGithubDebug) {
+		if runnerDebug, _ := strconv.ParseBool(os.Getenv("RUNNER_DEBUG")); runnerDebug {
+			cli.Debug = true
+		}
+	}
+
 	cli.VersionInfo = cli.GetVersionInfo()
 
 	cli.Parser = cli.newParser()
