@@ -7,7 +7,7 @@ require (
 	github.com/gookit/color v1.5.4
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/joho/godotenv v1.5.1
-	github.com/sethvargo/go-githubactions v1.3.0
+	github.com/sethvargo/go-githubactions v1.3.1
 	golang.org/x/sync v0.11.0
 )
 
