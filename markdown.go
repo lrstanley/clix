@@ -74,9 +74,9 @@ func (cli *CLI[T]) generateRecursive(out io.Writer, groups ...*flags.Group) {
 			fmt.Fprintf(out, "| %s | `%s` | %s | %s |\n", environment, option.String(), _type, description)
 		}
 
-		groups := group.Groups()
-		if len(groups) > 0 {
-			cli.generateRecursive(out, groups...)
+		children := group.Groups()
+		if len(children) > 0 {
+			cli.generateRecursive(out, children...)
 		}
 	}
 }

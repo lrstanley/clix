@@ -109,6 +109,8 @@ func (h *Handler) HandleLog(e *log.Entry) error {
 			action.Errorf(buf.String())
 		case log.FatalLevel:
 			action.Fatalf(buf.String())
+		case log.InvalidLevel:
+			// Invalid level, do nothing.
 		}
 
 		return nil

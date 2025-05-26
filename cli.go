@@ -6,6 +6,7 @@ package clix
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -178,7 +179,8 @@ func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error 
 
 	args, err := cli.Parser.Parse()
 	if err != nil {
-		if FlagErr, ok := err.(*flags.Error); ok && FlagErr.Type == flags.ErrHelp {
+		flagErr := &flags.Error{}
+		if errors.As(err, &flagErr) {
 			os.Exit(0)
 		}
 		os.Exit(1)

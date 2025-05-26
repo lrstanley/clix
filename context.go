@@ -34,5 +34,5 @@ func FromContext[T any](ctx context.Context) *CLI[T] {
 	if v == nil {
 		return nil
 	}
-	return v.(*CLI[T])
+	return v.(*CLI[T]) //nolint:errcheck
 }

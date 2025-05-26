@@ -69,7 +69,7 @@ func (cli *CLI[T]) NewLogger() error {
 
 	switch {
 	case cli.LoggerConfig.Path != "":
-		f, err := os.OpenFile(cli.LoggerConfig.Path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644)
+		f, err := os.OpenFile(cli.LoggerConfig.Path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 		if err != nil {
 			return err
 		}
