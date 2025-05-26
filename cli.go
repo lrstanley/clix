@@ -127,7 +127,7 @@ func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error 
 
 		// Initialize the logger.
 		if !cli.IsSet(OptDisableLogging) {
-			err := cli.newLogger()
+			err := cli.NewLogger()
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "clix: error initializing logger: %v", err)
 				os.Exit(1)

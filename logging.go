@@ -50,9 +50,9 @@ type LoggerConfig struct {
 	Path string `env:"PATH" long:"path" description:"path to log file (disables stdout logging)"`
 }
 
-// new parses LoggerConfig and creates a new structured logger with the
+// NewLogger parses LoggerConfig and creates a new structured logger with the
 // provided configuration.
-func (cli *CLI[T]) newLogger() error {
+func (cli *CLI[T]) NewLogger() error {
 	cli.Logger = &log.Logger{}
 
 	if cli.LoggerConfig.Level == "" {
