@@ -17,9 +17,13 @@
   </a>
 
 
+
   <a href="https://github.com/lrstanley/clix/actions?query=workflow%3Atest+event%3Apush">
-    <img title="GitHub Workflow Status (test @ master)" src="https://img.shields.io/github/workflow/status/lrstanley/clix/test/master?label=test&style=flat-square&event=push">
+    <img title="GitHub Workflow Status (test @ master)" src="https://img.shields.io/github/actions/workflow/status/lrstanley/clix/test.yml?branch=master&label=test&style=flat-square">
   </a>
+
+
+
 
   <a href="https://codecov.io/gh/lrstanley/clix">
     <img title="Code Coverage" src="https://img.shields.io/codecov/c/github/lrstanley/clix/master?style=flat-square">
@@ -296,7 +300,7 @@ Generated:
 ```
 MIT License
 
-Copyright (c) 2021 Liam Stanley <me@liamstanley.io>
+Copyright (c) 2021 Liam Stanley <liam@liam.sh>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
