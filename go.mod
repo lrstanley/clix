@@ -6,7 +6,7 @@ toolchain go1.24.2
 
 require (
 	github.com/apex/log v1.9.0
-	github.com/gookit/color v1.5.4
+	github.com/gookit/color v1.6.0
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/joho/godotenv v1.5.1
 	github.com/sethvargo/go-githubactions v1.3.1
