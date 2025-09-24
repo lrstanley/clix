@@ -5,96 +5,137 @@
 package clix
 
 import (
+	"fmt"
+	"log/slog"
 	"os"
+	"strconv"
+	"time"
 
-	"github.com/apex/log"
-	logcli "github.com/apex/log/handlers/cli"
-	"github.com/apex/log/handlers/discard"
-	"github.com/apex/log/handlers/json"
-	"github.com/apex/log/handlers/logfmt"
-	"github.com/apex/log/handlers/text"
-	"github.com/lrstanley/clix/githubhandler"
+	"github.com/alecthomas/kong"
+	"github.com/lmittmann/tint"
+	"github.com/lrstanley/clix/v2/internal/logging"
 )
 
-// LoggerConfig are the flags that define how log entries are processed/returned.
-// If using github.com/jessevdk/go-flags, you can defined a LoggerConfig in
-// your struct, and then call LoggerConfig.New(isDebug), directly, so you
-// don't have to define additional flags. See the struct tags for what it will
-// default to in terms of environment variables.
-//
-// Example (where you can set LOG_LEVEL as an environment variable, for example):
-//
-//	type Flags struct {
-//		Debug    bool               `long:"debug" env:"DEBUG" description:"enable debugging"`
-//		Log      *chix.LoggerConfig `group:"Logging Options" namespace:"log" env-namespace:"LOG"`
-//	}
-//	[...]
-//	cli.Log.New(cli.Debug)
-type LoggerConfig struct {
-	// Quiet disables all logging.
-	Quiet bool `env:"QUIET" long:"quiet" description:"disable logging to stdout (also: see levels)"`
+// WithLoggingPlugin adds the logging plugin to the CLI. This includes flags
+// for controlling log/slog logging levels, logging to files, JSON output, and
+// supports setting the global slog logger.
+func WithLoggingPlugin[T any](global bool) Option[T] {
+	return func(cli *CLI[T]) {
+		loggingFlags := &LoggingPlugin{}
+		cli.Plugins = append(cli.Plugins, loggingFlags)
+		cli.kongOptions = append(cli.kongOptions, kong.WithAfterApply(func() error {
+			logger, err := loggingFlags.createLogHandler(cli.Debug, global)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error creating logger: %v\n", err)
+				os.Exit(1)
+			}
+			cli.LogHandler = logger
+			cli.Logger = slog.New(logger)
 
-	// Level is the minimum level of log messages to output, must be one of info|warn|error|debug|fatal.
-	Level string `env:"LEVEL" long:"level" default:"info" choice:"debug" choice:"info" choice:"warn" choice:"error" choice:"fatal" description:"logging level"`
+			cli.Logger.Debug(
+				"logger initialized",
+				"name", cli.Application.Name,
+				"version", cli.Application.Version,
+				"commit", cli.Application.Commit,
+				"go_version", cli.version.GoVersion,
+				"os", cli.version.OS,
+				"arch", cli.version.Arch,
+			)
 
-	// JSON enables JSON logging.
-	JSON bool `env:"JSON" long:"json" description:"output logs in JSON format"`
-
-	// Github enables GitHub Actions logging.
-	Github bool `env:"GITHUB" long:"github" description:"output logs in GitHub Actions format"`
-
-	// Pretty enables cli-friendly logging.
-	Pretty bool `env:"PRETTY" long:"pretty" description:"output logs in a pretty colored format (cannot be easily parsed)"`
-
-	// Path is the path to the log file.
-	Path string `env:"PATH" long:"path" description:"path to log file (disables stdout logging)"`
+			return nil
+		}))
+	}
 }
 
-// NewLogger parses LoggerConfig and creates a new structured logger with the
-// provided configuration.
-func (cli *CLI[T]) NewLogger() error {
-	cli.Logger = &log.Logger{}
+// LoggingPlugin are the flags that define how log entries are processed/returned.
+type LoggingPlugin struct {
+	// Level is the minimum level of log messages to output, must be one of none|debug|info|warn|error.
+	Level string `name:"log.level" env:"LOG_LEVEL" default:"info" enum:"none,debug,info,warn,error" help:"logging level (none: disables logging)"`
 
-	if cli.LoggerConfig.Level == "" {
-		cli.Logger.Level = log.InfoLevel
+	// JSON enables JSON logging.
+	JSON bool `name:"log.json" env:"LOG_JSON" help:"output logs in JSON format"`
+
+	// Path is the path to the log file.
+	Path string `name:"log.path" env:"LOG_PATH" type:"path" help:"path to log file (disables stderr logging)"`
+}
+
+func (l *LoggingPlugin) GetLevel() slog.Level {
+	switch l.Level {
+	case "none":
+		return -1
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
+
+// createLogHandler creates a new [slog.Handler] with the provided configuration.
+func (l *LoggingPlugin) createLogHandler(isDebug, setGlobal bool) (handler slog.Handler, err error) {
+	level := l.GetLevel()
+
+	if isDebug {
+		level = slog.LevelDebug
 	}
 
-	if cli.Debug {
-		cli.Logger.Level = log.DebugLevel
-	} else if cli.LoggerConfig.Level == "" {
-		cli.Logger.Level = log.InfoLevel
-	} else {
-		cli.Logger.Level = log.MustParseLevel(cli.LoggerConfig.Level)
-	}
+	noColor, _ := strconv.ParseBool(os.Getenv("NO_COLOR"))
 
 	switch {
-	case cli.LoggerConfig.Path != "":
-		f, err := os.OpenFile(cli.LoggerConfig.Path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
+	case l.Path != "":
+		var f *os.File
+		f, err = os.OpenFile(l.Path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// We can't really close the file here.
-
-		cli.Logger.Handler = logcli.New(f)
-	case cli.LoggerConfig.Github:
-		// Since debug is by default masked unless debugging is enabled in Actions.
-		cli.Logger.Level = log.DebugLevel
-		cli.Logger.Handler = githubhandler.New(os.Stdout)
-	case cli.LoggerConfig.Quiet:
-		cli.Logger.Handler = discard.New()
-	case cli.LoggerConfig.JSON:
-		cli.Logger.Handler = json.New(os.Stdout)
-	case cli.LoggerConfig.Pretty:
-		cli.Logger.Handler = text.New(os.Stdout)
+		handler = slog.NewJSONHandler(
+			f,
+			&slog.HandlerOptions{
+				Level:     level,
+				AddSource: true,
+			},
+		)
+	case level == -1:
+		handler = &logging.DiscardHandler{}
+	case l.JSON:
+		handler = slog.NewJSONHandler(
+			os.Stderr,
+			&slog.HandlerOptions{
+				Level:     level,
+				AddSource: true,
+			},
+		)
+	case noColor:
+		handler = slog.NewTextHandler(
+			os.Stderr,
+			&slog.HandlerOptions{
+				Level:     level,
+				AddSource: true,
+			},
+		)
 	default:
-		cli.Logger.Handler = logfmt.New(os.Stdout)
+		handler = tint.NewHandler(
+			os.Stderr,
+			&tint.Options{
+				Level:      level,
+				AddSource:  true,
+				TimeFormat: time.RFC3339,
+				NoColor:    noColor,
+			},
+		)
 	}
 
-	if cli.options&OptDisableGlobalLogger == 0 {
-		log.SetLevel(cli.Logger.Level)
-		log.SetHandler(cli.Logger.Handler)
+	if setGlobal {
+		_ = slog.SetLogLoggerLevel(level)
+		slog.SetDefault(slog.New(handler))
 	}
 
-	return nil
+	return handler, nil
 }

@@ -5,252 +5,154 @@
 package clix
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
+	"log/slog"
 	"os"
 	"strconv"
-	"strings"
 
-	"github.com/apex/log"
-	"github.com/gookit/color"
-	flags "github.com/jessevdk/go-flags"
-	_ "github.com/joho/godotenv/autoload" // Load .env files automatically.
+	"github.com/alecthomas/kong"
+	"github.com/joho/godotenv"
 )
 
-// Options allows overriding default logic.
-type Options int
+// Option is a function that can be used to configure the CLI.
+type Option[T any] func(cli *CLI[T])
 
-const (
-	OptDisableLogging       Options = 1 << iota // Disable logging initialization.
-	OptDisableVersion                           // Disable version printing (must handle manually).
-	OptDisableDeps                              // Disable dependency printing in version output.
-	OptDisableBuildSettings                     // Disable build info printing in version output.
-	OptDisableGlobalLogger                      // Disable setting the global logger for apex/log.
-	OptDisableGithubDebug                       // Disable github debug logging.
-	OptSubcommandsOptional                      // Subcommands are optional.
-)
+// WithKongOptions adds the provided kong options to the CLI.
+func WithKongOptions[T any](opts ...kong.Option) Option[T] {
+	return func(cli *CLI[T]) {
+		cli.kongOptions = append(cli.kongOptions, opts...)
+	}
+}
+
+// WithGithubDebug enables debug mode if the RUNNER_DEBUG environment variable is
+// set, which is set when running a Github Action in debug mode.
+func WithGithubDebug[T any]() Option[T] {
+	return WithKongOptions[T](
+		kong.WithBeforeApply(func(cli *CLI[T]) error {
+			if runnerDebug, _ := strconv.ParseBool(os.Getenv("RUNNER_DEBUG")); runnerDebug {
+				cli.Debug = true
+			}
+			return nil
+		}),
+	)
+}
+
+// WithEnvFiles loads environment variables from ".env" style files from the
+// provided paths. If no paths are provided, it will load from the current
+// working directory.
+func WithEnvFiles[T any](paths ...string) Option[T] {
+	return WithKongOptions[T](
+		kong.WithBeforeResolve(func() error {
+			err := godotenv.Load(paths...)
+			if err != nil && len(paths) > 0 {
+				// Only throw an error if they explicitly provided paths.
+				return err
+			}
+			return nil
+		}),
+	)
+}
+
+type Application struct {
+	Name        string `json:"name"`          // Application name. Defaults to the main module path.
+	Description string `json:"description"`   // Application description.
+	Version     string `json:"build_version"` // Build version. Uses VCS info if available.
+	Commit      string `json:"build_commit"`  // VCS commit SHA. Uses VCS info if available.
+	Date        string `json:"build_date"`    // VCS commit date. Uses VCS info if available.
+
+	Links []Link `json:"links,omitempty"` // Links to the project's website, support, issues, security, etc.
+}
 
 // CLI is the main construct for clix. Do not manually set any fields until
-// you've called Parse(). Initialize a new CLI like so:
+// you've called [Parse] or [ParseWithDefaults].
+//
+// Supported struct tags: https://github.com/alecthomas/kong#supported-tags
+//
+// Initialize a new CLI like so:
 //
 //	var (
-//		logger   log.Interface
 //		cli    = &clix.CLI[Flags]{} // Where Flags is a user-provided type (struct).
 //	)
 //
 //	type Flags struct {
-//		SomeFlag string `long:"some-flag" description:"some flag"`
+//		// Normal kong flags.
+//		SomeFlag string `env:"SOME_FLAG" help:"some flag"`
 //	}
 //
-//	// [...]
-//	cli.Parse(clix.OptDisableGlobalLogger|clix.OptDisableBuildSettings)
-//	logger = cli.Logger
-//
-// Additional notes:
-// * Use cli.Logger as a apex/log log.Interface (as shown above).
-// * Use cli.Args to get the remaining arguments provided to the program.
+//	func main() {
+//		cli.ParseWithDefaults()
+//		// [...]
+//	}
 type CLI[T any] struct {
+	kong.Plugins               // Kong-specific plugins.
+	kongOptions  []kong.Option `kong:"-"`
+	version      *Version      `kong:"-"`
+
+	// Application should contain basic information about your application.
+	Application Application `kong:"-"`
+
+	// Context is the context returned by kong after initial parsing.
+	Context *kong.Context `kong:"-"`
+
 	// Flags are the user-provided flags.
-	Flags *T
-
-	// Parser is the flags parser, this is only set after Parse() is called.
-	//
-	// NOTE: the "no-flag" struct field is required, otherwise the parser will parse
-	// itself recursively, maxing out the stack.
-	Parser *flags.Parser `no-flag:"true"`
-
-	// VersionInfo is the version information for the CLI. You can provide
-	// a custom version of this if you already have version information.
-	VersionInfo *VersionInfo[T] `json:"version_info"`
-
-	// Links are the links to the project's website, support, issues, security,
-	// etc. This will be used in help and version output if provided.
-	// Links are in the format of "name=url".
-	Links []Link
-
-	// Args are the remaining arguments after parsing.
-	Args []string
-
-	// Version can be used to print the version information to console. Use
-	// NO_COLOR or FORCE_COLOR to change coloring.
-	Version struct {
-		Enabled     bool `short:"v" long:"version" description:"prints version information and exits"`
-		EnabledJSON bool `long:"version-json" description:"prints version information in JSON format and exits"`
-	}
+	Flags *T `embed:""`
 
 	// Debug can be used to enable/disable debugging as a global flag. Also
 	// sets the log level to debug.
-	Debug bool `short:"D" long:"debug" env:"DEBUG" description:"enables debug mode"`
+	Debug bool `short:"D" name:"debug" help:"enables debug mode"`
 
-	// GenerateMarkdown can be used to generate markdown documentation for
-	// the cli. clix will intercept and output the documentation to stdout.
-	GenerateMarkdown bool `long:"generate-markdown" hidden:"true" description:"generate markdown documentation and write to stdout" json:"-"`
+	// LogHandler is the generated logger handler. Usually don't need to use this
+	// directly. Not used if logging configuration is disabled.
+	LogHandler slog.Handler `kong:"-"`
 
-	// Logger is the generated logger.
-	Logger       *log.Logger  `json:"-"`
-	LoggerConfig LoggerConfig `group:"Logging Options" namespace:"log" env-namespace:"LOG"`
-
-	options Options `json:"-"`
+	// Logger is the generated logger. Not used if logging configuration is disabled.
+	Logger *slog.Logger `kong:"-"`
 }
 
-// Parse executes the go-flags parser, returns the remaining arguments, as
-// well as initializes a new logger. If cli.Version is set, it will print
-// the version information (unless disabled).
-func (cli *CLI[T]) Parse(options ...Options) {
-	_ = cli.ParseWithInit(nil, options...)
-}
-
-// ParseWithInit executes the go-flags parser with the provided init function,
-// returns the remaining arguments, as well as initializes a new logger. If
-// cli.Version is set, it will print the version information (unless disabled).
-//
-// Prefer using Parse() unless you're using sub-commands and want to run some
-// initialization logic before the sub-command if invoked.
-func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error {
+// Parse executes the cli parser, with the provided options (no defaults are
+// configured). Order of options is important. See also [CLI.ParseWithDefaults].
+func (cli *CLI[T]) Parse(options ...Option[T]) {
 	if cli.Flags == nil {
 		cli.Flags = new(T)
 	}
 
-	cli.Set(options...)
-
-	if !cli.IsSet(OptDisableGithubDebug) {
-		if runnerDebug, _ := strconv.ParseBool(os.Getenv("RUNNER_DEBUG")); runnerDebug {
-			cli.Debug = true
-		}
+	cli.version = GetVersionInfo(cli.Application)
+	cli.Application = cli.version.Application // The version info can also help fill out the app info.
+	cli.kongOptions = []kong.Option{
+		kong.ConfigureHelp(kong.HelpOptions{
+			Tree:      true,
+			FlagsLast: true,
+		}),
+		kong.UsageOnError(),
+		kong.Name(cli.Application.Name),
+		kong.Description(cli.Application.Description),
+		kong.Bind(cli.version),
+		kong.Bind(cli.Application),
+		kong.Bind(cli),
 	}
 
-	cli.VersionInfo = cli.GetVersionInfo()
-
-	cli.Parser = cli.newParser()
-	cli.Parser.CommandHandler = func(command flags.Commander, args []string) error {
-		cli.Args = args
-
-		// Initialize the logger.
-		if !cli.IsSet(OptDisableLogging) {
-			err := cli.NewLogger()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "clix: error initializing logger: %v", err)
-				os.Exit(1)
-			}
+	for _, opt := range options {
+		if opt == nil {
+			continue
 		}
-
-		if (cli.Version.EnabledJSON) && !cli.IsSet(OptDisableVersion) {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "    ")
-			if err := enc.Encode(cli.VersionInfo); err != nil {
-				panic(err)
-			}
-			os.Exit(1)
-		}
-
-		if (cli.Version.Enabled) && !cli.IsSet(OptDisableVersion) {
-			fmt.Println(cli.VersionInfo.String()) //nolint:forbidigo
-			os.Exit(1)
-		}
-
-		if cli.GenerateMarkdown {
-			cli.Markdown(os.Stdout)
-			os.Exit(0)
-		}
-
-		if !cli.IsSet(OptDisableLogging) {
-			cli.Logger.WithFields(log.Fields{
-				"name":       cli.VersionInfo.Name,
-				"version":    cli.VersionInfo.Version,
-				"commit":     cli.VersionInfo.Commit,
-				"go_version": cli.VersionInfo.GoVersion,
-				"os":         cli.VersionInfo.OS,
-				"arch":       cli.VersionInfo.Arch,
-			}).Debug("logger initialized")
-		}
-
-		if command != nil {
-			err := initFn()
-			if err != nil {
-				return err
-			}
-
-			return command.Execute(args)
-		}
-
-		return nil
+		opt(cli)
 	}
 
-	args, err := cli.Parser.Parse()
-	if err != nil {
-		flagErr := &flags.Error{}
-		if errors.As(err, &flagErr) {
-			os.Exit(0)
-		}
-		os.Exit(1)
-	}
-
-	cli.Args = args
-	return err
+	cli.Context = kong.Parse(cli, cli.kongOptions...)
 }
 
-// newParser returns a new flags parser. However, it does not set CLI[T].Parser.
-func (cli *CLI[T]) newParser() (p *flags.Parser) {
-	p = flags.NewParser(cli, flags.PrintErrors|flags.HelpFlag|flags.PassDoubleDash)
-
-	p.NamespaceDelimiter = "."
-	p.EnvNamespaceDelimiter = "_"
-
-	if cli.IsSet(OptSubcommandsOptional) {
-		p.SubcommandsOptional = true
-	}
-
-	p.LongDescription = color.Sprint(cli.VersionInfo.stringBase())
-
-	return p
-}
-
-// IsSet returns true if the given option is set.
-func (cli *CLI[T]) IsSet(options Options) bool {
-	return cli.options&options != 0
-}
-
-// Set sets the given option.
-func (cli *CLI[T]) Set(options ...Options) {
-	for _, o := range options {
-		cli.options |= o
-	}
-}
-
-// Link allows you to define a link to be included in the version and usage
-// output.
-type Link struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
-}
-
-// GithubLinks return an opinonated set of links for the project, using
-// common Github layout conventions.
-func GithubLinks(repo, branch, homepage string) []Link {
-	repo = strings.TrimPrefix(repo, "https://")
-	repo = strings.TrimSuffix(repo, "/")
-
-	links := []Link{}
-
-	if branch == "" {
-		branch = "master"
-	}
-
-	if homepage != "" {
-		links = append(links, Link{
-			Name: "homepage",
-			URL:  homepage,
-		})
-	}
-
-	links = append(links, []Link{
-		{Name: "github", URL: "https://" + repo},
-		{Name: "issues", URL: fmt.Sprintf("https://%s/issues/new/choose", repo)},
-		{Name: "support", URL: fmt.Sprintf("https://%s/blob/%s/.github/SUPPORT.md", repo, branch)},
-		{Name: "contributing", URL: fmt.Sprintf("https://%s/blob/%s/.github/CONTRIBUTING.md", repo, branch)},
-		{Name: "security", URL: fmt.Sprintf("https://%s/security/policy", repo)},
-	}...)
-
-	return links
+// ParseWithDefaults executes the cli parser, with the provided options and associated
+// recommended defaults. Order of options is important. See also [CLI.Parse].
+func (cli *CLI[T]) ParseWithDefaults(options ...Option[T]) {
+	cli.Parse(
+		append(
+			[]Option[T]{
+				WithEnvFiles[T](),
+				WithGithubDebug[T](),
+				WithLoggingPlugin[T](true),
+				WithVersionPlugin[T](),
+				WithMarkdownPlugin[T](),
+			},
+			options...,
+		)...,
+	)
 }
