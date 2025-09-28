@@ -72,7 +72,8 @@ type Cron struct {
 
 // NewCron creates a new cron runner with the provided name and underlying runner.
 // The cron runner will run the runner at the provided interval, and will exit
-// on error if the exitOnError flag is set.
+// on error if the exitOnError flag is set. The default interval is 5 minutes,
+// which can be changed with [Cron.WithInterval].
 func NewCron(name string, runner Runner) *Cron {
 	return &Cron{
 		name:     name,
@@ -85,22 +86,24 @@ func NewCron(name string, runner Runner) *Cron {
 // WithInterval sets the interval at which the cron runner will run the underlying
 // runner. Defaults to 5 minutes.
 func (c *Cron) WithInterval(interval time.Duration) *Cron {
-	c.interval = interval
+	if interval > 5*time.Millisecond {
+		c.interval = interval
+	}
 	return c
 }
 
 // WithImmediate sets whether the cron runner should run the underlying runner
 // immediately upon creation. This defaults to false. If true, the runner will
 // also exit on error if the initial immediate run fails.
-func (c *Cron) WithImmediate(immediate bool) *Cron {
-	c.immediate = immediate
+func (c *Cron) WithImmediate(enabled bool) *Cron {
+	c.immediate = enabled
 	return c
 }
 
 // WithExitOnError sets whether the cron runner should exit on error. This defaults
 // to false. If true, the runner will exit if the underlying runner returns an error.
-func (c *Cron) WithExitOnError(exitOnError bool) *Cron {
-	c.exitOnError = exitOnError
+func (c *Cron) WithExitOnError(enabled bool) *Cron {
+	c.exitOnError = enabled
 	return c
 }
 

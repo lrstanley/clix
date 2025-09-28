@@ -4,12 +4,31 @@
 
 package clix
 
-import "github.com/alecthomas/kong"
+import (
+	"bytes"
+	"fmt"
+	"os"
+	"text/template"
+
+	"github.com/alecthomas/kong"
+)
 
 // WithMarkdownPlugin adds a hidden "generate-markdown" command that allows
-// generating markdown documentation for the CLI.
+// generating markdown documentation for the CLI. To make it so this command
+// ignores any other required flags, it's invoked before kong applies additional
+// restrictions, which means it does not support special flags. To adjust the
+// behavior, you can use environment variables:
+//
+//   - CLIX_TEMPLATE_PATH: optional path to a directory containing template files to
+//     use for the markdown.
+//   - CLIX_OUTPUT_PATH: path to write the markdown to, or '-' to write to stdout
+//     (defaults to stdout).
 func WithMarkdownPlugin[T any]() Option[T] {
 	return func(cli *CLI[T]) {
+		if cli.checkAlreadyInit("markdown") {
+			return
+		}
+
 		cli.kongOptions = append(cli.kongOptions, kong.DynamicCommand(
 			"generate-markdown",
 			"generate markdown documentation and write to stdout",
@@ -20,81 +39,64 @@ func WithMarkdownPlugin[T any]() Option[T] {
 	}
 }
 
-type MarkdownCommand struct {
-	OutputPath    string `short:"o" name:"output-path" type:"path" default:"-" help:"path to write the markdown to, or '-' to write to stdout"`
-	TemplatePath  string `short:"t" name:"template-path" type:"path" help:"optional path to a template file to use for the markdown"`
-	IncludeHidden bool   `name:"include-hidden" help:"include hidden flags and commands"`
+type MarkdownCommand struct{}
+
+func (m *MarkdownCommand) BeforeApply(
+	ctx *kong.Kong,
+	appInfo *AppInfo,
+	version *Version,
+) error {
+	var output string
+	var err error
+
+	if v := os.Getenv("CLIX_TEMPLATE_PATH"); v == "" {
+		output, err = m.GenerateMarkdown(ctx.Model, templates, appInfo, version)
+	} else {
+		var tmpl *template.Template
+		tmpl, err = template.New("").
+			Funcs(tmplFuncMap).
+			ParseFS(os.DirFS(v), templatePaths...)
+		if err != nil {
+			return err
+		}
+
+		output, err = m.GenerateMarkdown(ctx.Model, tmpl, appInfo, version)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if v := os.Getenv("CLIX_OUTPUT_PATH"); v == "-" || v == "" {
+		fmt.Fprint(os.Stdout, output) //nolint:forbidigo
+	} else {
+		err = os.WriteFile(v, []byte(output), 0o600)
+		if err != nil {
+			return err
+		}
+	}
+
+	os.Exit(0)
+	return nil
 }
 
-func (m *MarkdownCommand) BeforeApply(ctx *kong.Context) error {
-	panic("not implemented")
+func (m *MarkdownCommand) GenerateMarkdown(
+	model *kong.Application,
+	tmpl *template.Template,
+	appInfo *AppInfo,
+	version *Version,
+) (string, error) {
+	buf := bytes.NewBuffer(nil)
+
+	err := tmpl.ExecuteTemplate(buf, "main.gotmpl", map[string]any{
+		"Model":   model,
+		"AppInfo": appInfo,
+		"Config":  m,
+		"Version": version,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
-
-// const optionHeader = "| Environment vars | Flags | Type | Description |\n| --- | --- | --- | --- |\n"
-
-// // Markdown writes generated marakdown to the provided io.Writer.
-// func (cli *CLI[T]) Markdown(out io.Writer) {
-// 	cli.generateRecursive(out)
-// }
-
-// func (cli *CLI[T]) generateRecursive(out io.Writer, groups ...*flags.Group) {
-// 	// TODO: commands?
-
-// 	parser := cli.newParser()
-
-// 	if groups == nil {
-// 		groups = parser.Groups()
-// 	}
-
-// 	for _, group := range groups {
-// 		if group.LongDescription != "" {
-// 			fmt.Fprintf(out, "\n#### %s\n%s", group.LongDescription, optionHeader)
-// 		} else if group.ShortDescription != "" {
-// 			fmt.Fprintf(out, "\n#### %s\n%s", group.ShortDescription, optionHeader)
-// 		}
-
-// 		// print the options in this group first, then recursively continue into
-// 		// each sub-group.
-// 		options := group.Options()
-// 		for _, option := range options {
-// 			if option.Hidden {
-// 				continue
-// 			}
-
-// 			environment := option.EnvKeyWithNamespace()
-// 			if environment != "" {
-// 				environment = "`" + environment + "`"
-// 			} else {
-// 				environment = "-"
-// 			}
-
-// 			description := option.Description
-
-// 			if option.Required {
-// 				description += " [**required**]"
-// 			}
-
-// 			if option.Default != nil {
-// 				description += fmt.Sprintf(" [**default: %s**]", strings.Join(option.Default, ", "))
-// 			}
-
-// 			if option.Choices != nil {
-// 				description += fmt.Sprintf(" [**choices: %s**]", strings.Join(option.Choices, ", "))
-// 			}
-
-// 			description = strings.ReplaceAll(description, "|", "\\|")
-
-// 			_type := fmt.Sprintf("%T", option.Value())
-// 			if strings.Contains(strings.ToLower(_type), "func") {
-// 				_type = "-"
-// 			}
-
-// 			fmt.Fprintf(out, "| %s | `%s` | %s | %s |\n", environment, option.String(), _type, description)
-// 		}
-
-// 		children := group.Groups()
-// 		if len(children) > 0 {
-// 			cli.generateRecursive(out, children...)
-// 		}
-// 	}
-// }

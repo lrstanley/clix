@@ -1,0 +1,25 @@
+{{- define "helpers/flags/table" }}
+{{- if gt (len $) 0 }}
+{{- $rows := slice (slice "Flag(s)" "Env vars" "Type" "Help") }}
+{{- range $ }}
+{{- $rows = slice_append $rows (
+    slice
+        (
+            printf "%s%s%s"
+                (quote_code .String)
+                ((bool_or .Required "<br>**required: true**" ""))
+                (
+                    bool_or
+                        .EnumSlice
+                        (printf "<br>**choices**: %s" (quote_code (join .EnumSlice "\\|")))
+                        ""
+                )
+        )
+        (or (join (quote_code .Envs) "<br>") "-")
+        (bold (sanitize_md .Target.Kind))
+        (sanitize_md .Help)
+) }}
+{{- end }}
+{{- table $rows false }}
+{{- end }}{{- /* end: if */}}
+{{- end }}{{- /* end: define "helpers/flags/table" */}}

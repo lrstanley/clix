@@ -7,6 +7,7 @@ package clix
 import (
 	"log/slog"
 	"os"
+	"slices"
 	"strconv"
 
 	"github.com/alecthomas/kong"
@@ -26,40 +27,36 @@ func WithKongOptions[T any](opts ...kong.Option) Option[T] {
 // WithGithubDebug enables debug mode if the RUNNER_DEBUG environment variable is
 // set, which is set when running a Github Action in debug mode.
 func WithGithubDebug[T any]() Option[T] {
-	return WithKongOptions[T](
-		kong.WithBeforeApply(func(cli *CLI[T]) error {
+	return func(cli *CLI[T]) {
+		if cli.checkAlreadyInit("github-debug") {
+			return
+		}
+		cli.kongOptions = append(cli.kongOptions, kong.WithBeforeApply(func(cli *CLI[T]) error {
 			if runnerDebug, _ := strconv.ParseBool(os.Getenv("RUNNER_DEBUG")); runnerDebug {
 				cli.Debug = true
 			}
 			return nil
-		}),
-	)
+		}))
+	}
 }
 
 // WithEnvFiles loads environment variables from ".env" style files from the
 // provided paths. If no paths are provided, it will load from the current
 // working directory.
 func WithEnvFiles[T any](paths ...string) Option[T] {
-	return WithKongOptions[T](
-		kong.WithBeforeResolve(func() error {
+	return func(cli *CLI[T]) {
+		if cli.checkAlreadyInit("env-files") {
+			return
+		}
+		cli.kongOptions = append(cli.kongOptions, kong.WithBeforeResolve(func() error {
 			err := godotenv.Load(paths...)
 			if err != nil && len(paths) > 0 {
 				// Only throw an error if they explicitly provided paths.
 				return err
 			}
 			return nil
-		}),
-	)
-}
-
-type Application struct {
-	Name        string `json:"name"`          // Application name. Defaults to the main module path.
-	Description string `json:"description"`   // Application description.
-	Version     string `json:"build_version"` // Build version. Uses VCS info if available.
-	Commit      string `json:"build_commit"`  // VCS commit SHA. Uses VCS info if available.
-	Date        string `json:"build_date"`    // VCS commit date. Uses VCS info if available.
-
-	Links []Link `json:"links,omitempty"` // Links to the project's website, support, issues, security, etc.
+		}))
+	}
 }
 
 // CLI is the main construct for clix. Do not manually set any fields until
@@ -83,12 +80,13 @@ type Application struct {
 //		// [...]
 //	}
 type CLI[T any] struct {
-	kong.Plugins               // Kong-specific plugins.
-	kongOptions  []kong.Option `kong:"-"`
-	version      *Version      `kong:"-"`
-
-	// Application should contain basic information about your application.
-	Application Application `kong:"-"`
+	kong.Plugins                     // Kong-specific plugins.
+	kongOptions        []kong.Option `kong:"-"`
+	pluginsInitialized []string      `kong:"-"`
+	version            *Version      `kong:"-"`
+	app                *AppInfo      `kong:"-"`
+	logHandler         slog.Handler  `kong:"-"`
+	logger             *slog.Logger  `kong:"-"`
 
 	// Context is the context returned by kong after initial parsing.
 	Context *kong.Context `kong:"-"`
@@ -99,13 +97,6 @@ type CLI[T any] struct {
 	// Debug can be used to enable/disable debugging as a global flag. Also
 	// sets the log level to debug.
 	Debug bool `short:"D" name:"debug" help:"enables debug mode"`
-
-	// LogHandler is the generated logger handler. Usually don't need to use this
-	// directly. Not used if logging configuration is disabled.
-	LogHandler slog.Handler `kong:"-"`
-
-	// Logger is the generated logger. Not used if logging configuration is disabled.
-	Logger *slog.Logger `kong:"-"`
 }
 
 // Parse executes the cli parser, with the provided options (no defaults are
@@ -115,18 +106,18 @@ func (cli *CLI[T]) Parse(options ...Option[T]) {
 		cli.Flags = new(T)
 	}
 
-	cli.version = GetVersionInfo(cli.Application)
-	cli.Application = cli.version.Application // The version info can also help fill out the app info.
+	cli.app = &AppInfo{}
+	cli.version = GetVersionInfo(cli.app)
 	cli.kongOptions = []kong.Option{
 		kong.ConfigureHelp(kong.HelpOptions{
 			Tree:      true,
 			FlagsLast: true,
 		}),
 		kong.UsageOnError(),
-		kong.Name(cli.Application.Name),
-		kong.Description(cli.Application.Description),
+		kong.Name(cli.app.Name),
+		kong.Description(cli.app.Description),
 		kong.Bind(cli.version),
-		kong.Bind(cli.Application),
+		kong.Bind(cli.app),
 		kong.Bind(cli),
 	}
 
@@ -155,4 +146,12 @@ func (cli *CLI[T]) ParseWithDefaults(options ...Option[T]) {
 			options...,
 		)...,
 	)
+}
+
+func (cli *CLI[T]) checkAlreadyInit(plugin string) bool {
+	if slices.Contains(cli.pluginsInitialized, plugin) {
+		return true
+	}
+	cli.pluginsInitialized = append(cli.pluginsInitialized, plugin)
+	return false
 }

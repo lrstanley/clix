@@ -1,0 +1,48 @@
+{{- /*
+    expects a map[string]any with the following keys:
+    - Model: *kong.Application
+    - Node:  *kong.Node
+    - Depth: int
+*/}}
+{{- define "helpers/command" }}
+<a id="command-{{ slug .Node.Path }}"></a>
+### {{ quote_code (printf "$ %s %s" .Model.Name .Node.Path) }}
+
+> **Description:** {{ or .Node.Detail .Node.Help "n/a" }}
+
+```console
+# Usage:
+$ {{ .Model.Name }} {{ .Node.Summary }}
+```
+
+{{- if gt (len .Node.Flags) 0 }}
+{{""}}
+{{ "#" | repeat (add_int $.Depth 1) }} Flags
+
+{{ template "helpers/flags/table" (flags_by_group .Node.Flags "") }}
+
+{{- range flag_groups .Node.Flags }}
+{{""}}
+##### {{ .Title | title }}
+
+{{ template "helpers/flags/table" (flags_by_group $.Node.Flags .Key) }}
+{{- end }}{{- /* end: flag_groups */}}
+{{- end }}{{- /* end: if .Node.Flags */}}
+
+{{- if
+    and
+        (node_has_unhidden_children .Node)
+        (gt (len (children_by_type .Node "command")) 0)
+}}
+{{- range (children_by_type .Node "command") }}
+{{- if .Hidden }}{{ continue }}{{ end }}
+{{ template "helpers/command" (
+    dict
+        "Model" $.Model
+        "Node" .
+        "Depth" (add_int $.Depth 1)
+    )
+}}
+{{- end }}{{- /* end: range .Node.Children */}}
+{{- end }}{{- /* end: node_has_unhidden_children . */}}
+{{- end }}{{- /* end: define "helpers/command" */}}

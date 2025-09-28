@@ -21,22 +21,31 @@ import (
 // supports setting the global slog logger.
 func WithLoggingPlugin[T any](global bool) Option[T] {
 	return func(cli *CLI[T]) {
-		loggingFlags := &LoggingPlugin{}
-		cli.Plugins = append(cli.Plugins, loggingFlags)
+		if cli.checkAlreadyInit("logging") {
+			return
+		}
+
+		var flags struct {
+			Logging *LoggingPlugin `embed:"" group:"Logging flags"`
+		}
+
+		flags.Logging = &LoggingPlugin{}
+		cli.Plugins = append(cli.Plugins, &flags)
 		cli.kongOptions = append(cli.kongOptions, kong.WithAfterApply(func() error {
-			logger, err := loggingFlags.createLogHandler(cli.Debug, global)
+			logger, err := flags.Logging.CreateHandler(cli.Debug, global)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error creating logger: %v\n", err)
 				os.Exit(1)
 			}
-			cli.LogHandler = logger
-			cli.Logger = slog.New(logger)
 
-			cli.Logger.Debug(
+			cli.logHandler = logger
+			cli.logger = slog.New(logger)
+
+			cli.logger.Debug(
 				"logger initialized",
-				"name", cli.Application.Name,
-				"version", cli.Application.Version,
-				"commit", cli.Application.Commit,
+				"name", cli.app.Name,
+				"version", cli.app.Version,
+				"commit", cli.app.Commit,
 				"go_version", cli.version.GoVersion,
 				"os", cli.version.OS,
 				"arch", cli.version.Arch,
@@ -45,6 +54,19 @@ func WithLoggingPlugin[T any](global bool) Option[T] {
 			return nil
 		}))
 	}
+}
+
+// GetLogger returns the generated logger if enabled, nil otherwise. If global
+// logging is enabled, you can also use [log/slog.Default].
+func (c *CLI[T]) GetLogger() *slog.Logger {
+	return c.logger
+}
+
+// GetLogHandler returns the generated logger handler if enabled, nil otherwise.
+// Usually don't need to use this directly. Not used if logging configuration is
+// disabled.
+func (c *CLI[T]) GetLogHandler() slog.Handler {
+	return c.logHandler
 }
 
 // LoggingPlugin are the flags that define how log entries are processed/returned.
@@ -76,8 +98,8 @@ func (l *LoggingPlugin) GetLevel() slog.Level {
 	}
 }
 
-// createLogHandler creates a new [slog.Handler] with the provided configuration.
-func (l *LoggingPlugin) createLogHandler(isDebug, setGlobal bool) (handler slog.Handler, err error) {
+// CreateHandler creates a new [log/slog.Handler] with the provided configuration.
+func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool) (handler slog.Handler, err error) {
 	level := l.GetLevel()
 
 	if isDebug {

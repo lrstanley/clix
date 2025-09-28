@@ -19,6 +19,9 @@ import (
 // for --version, --version-json, etc.
 func WithVersionPlugin[T any]() Option[T] {
 	return func(cli *CLI[T]) {
+		if cli.checkAlreadyInit("version") {
+			return
+		}
 		cli.Plugins = append(cli.Plugins, &VersionPlugin{})
 	}
 }
@@ -88,7 +91,7 @@ func (s BuildSetting) String() string {
 
 // Version represents the version information for the CLI.
 type Version struct {
-	Application  Application    `json:"application,omitempty"`    // Application information.
+	AppInfo      *AppInfo       `json:"app_info,omitempty"`       // Application information.
 	Settings     []BuildSetting `json:"build_settings,omitempty"` // Other information about the build.
 	Dependencies []Module       `json:"dependencies,omitempty"`   // Module dependencies.
 
@@ -100,21 +103,21 @@ type Version struct {
 
 // NonSensitiveVersion represents the version information for the CLI.
 type NonSensitiveVersion struct {
-	Application Application `json:"application,omitempty"` // Application information.
-	Command     string      `json:"command"`               // Executable name where the command was called from.
-	GoVersion   string      `json:"go_version"`            // Version of Go that produced this binary.
-	OS          string      `json:"os"`                    // Operating system for this build.
-	Arch        string      `json:"arch"`                  // CPU Architecture for build build.
+	AppInfo   *AppInfo `json:"app_info,omitempty"` // Application information.
+	Command   string   `json:"command"`            // Executable name where the command was called from.
+	GoVersion string   `json:"go_version"`         // Version of Go that produced this binary.
+	OS        string   `json:"os"`                 // Operating system for this build.
+	Arch      string   `json:"arch"`               // CPU Architecture for build build.
 }
 
 // NonSensitive returns a copy of Version with sensitive information removed.
 func (v *Version) NonSensitive() *NonSensitiveVersion {
 	return &NonSensitiveVersion{
-		Application: v.Application,
-		Command:     v.Command,
-		GoVersion:   v.GoVersion,
-		OS:          v.OS,
-		Arch:        v.Arch,
+		AppInfo:   v.AppInfo,
+		Command:   v.Command,
+		GoVersion: v.GoVersion,
+		OS:        v.OS,
+		Arch:      v.Arch,
 	}
 }
 
@@ -137,21 +140,21 @@ func (v *Version) GetSetting(key, defaultValue string) string {
 func (v *Version) stringBase() string {
 	w := &bytes.Buffer{}
 
-	fmt.Fprintf(w, "%s :: %s\n", v.Application.Name, v.Application.Version)
-	fmt.Fprintf(w, "|  build commit :: %s\n", v.Application.Commit)
-	fmt.Fprintf(w, "|    build date :: %s\n", v.Application.Date)
+	fmt.Fprintf(w, "%s :: %s\n", v.AppInfo.Name, v.AppInfo.Version)
+	fmt.Fprintf(w, "|  build commit :: %s\n", v.AppInfo.Commit)
+	fmt.Fprintf(w, "|    build date :: %s\n", v.AppInfo.Date)
 	fmt.Fprintf(w, "|    go version :: %s %s/%s\n", v.GoVersion, v.OS, v.Arch)
 
-	if len(v.Application.Links) > 0 {
+	if len(v.AppInfo.Links) > 0 {
 		var longest int
-		for _, l := range v.Application.Links {
+		for _, l := range v.AppInfo.Links {
 			if len(l.Name) > longest {
 				longest = len(l.Name)
 			}
 		}
 
 		fmt.Fprintf(w, "\nhelpful links:\n")
-		for _, l := range v.Application.Links {
+		for _, l := range v.AppInfo.Links {
 			fmt.Fprintf(
 				w, "|  %s%s :: %s\n",
 				strings.Repeat(" ", longest-len(l.Name)),
@@ -201,13 +204,13 @@ func (v *Version) String() string {
 }
 
 // GetVersionInfo returns the version information for the CLI.
-func GetVersionInfo(app Application) *Version {
+func GetVersionInfo(app *AppInfo) *Version {
 	v := &Version{
-		Application: app,
-		GoVersion:   runtime.Version(),
-		Command:     filepath.Base(os.Args[0]),
-		OS:          runtime.GOOS,
-		Arch:        runtime.GOARCH,
+		AppInfo:   app,
+		GoVersion: runtime.Version(),
+		Command:   filepath.Base(os.Args[0]),
+		OS:        runtime.GOOS,
+		Arch:      runtime.GOARCH,
 	}
 
 	build, ok := debug.ReadBuildInfo()
@@ -233,42 +236,42 @@ func GetVersionInfo(app Application) *Version {
 			}
 		}
 
-		if v.Application.Name == "" {
-			v.Application.Name = build.Main.Path
+		if v.AppInfo.Name == "" {
+			v.AppInfo.Name = build.Main.Path
 		}
 
-		if v.Application.Version == "" {
-			v.Application.Version = build.Main.Version
+		if v.AppInfo.Version == "" {
+			v.AppInfo.Version = build.Main.Version
 		}
 
-		if v.Application.Commit == "" {
-			v.Application.Commit = v.GetSetting("vcs.revision", build.Main.Sum)
+		if v.AppInfo.Commit == "" {
+			v.AppInfo.Commit = v.GetSetting("vcs.revision", build.Main.Sum)
 		}
 
-		if v.Application.Date == "" {
-			v.Application.Date = v.GetSetting("vcs.time", "unknown")
+		if v.AppInfo.Date == "" {
+			v.AppInfo.Date = v.GetSetting("vcs.time", "unknown")
 		}
 	}
 
-	if v.Application.Name == "" {
-		v.Application.Name = v.Command
+	if v.AppInfo.Name == "" {
+		v.AppInfo.Name = v.Command
 	}
 
-	if v.Application.Version == "" {
-		v.Application.Version = "unknown"
+	if v.AppInfo.Version == "" {
+		v.AppInfo.Version = "unknown"
 	}
 
-	if v.Application.Commit == "" {
-		v.Application.Commit = "unknown"
+	if v.AppInfo.Commit == "" {
+		v.AppInfo.Commit = "unknown"
 	}
 
-	if v.Application.Date == "" {
-		v.Application.Date = "unknown"
+	if v.AppInfo.Date == "" {
+		v.AppInfo.Date = "unknown"
 	}
 
-	if v.Application.Description == "" {
+	if v.AppInfo.Description == "" {
 		// TODO: https://github.com/alecthomas/kong/issues/376
-		v.Application.Description = strings.ReplaceAll(v.stringBase(), "|", "")
+		v.AppInfo.Description = strings.ReplaceAll(v.stringBase(), "|", "")
 	}
 
 	return v

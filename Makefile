@@ -9,11 +9,12 @@ up:
 
 generate: license
 	go generate -x ./...
+	cd examples/simple && go run . generate-markdown > README.md
 
 test:
 	gofmt -e -s -w .
 	go vet .
 	go test -v ./...
 
-all: up generate test
+all: generate test
 	@echo

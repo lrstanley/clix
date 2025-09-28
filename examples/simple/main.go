@@ -1,3 +1,7 @@
+// Copyright (c) Liam Stanley <liam@liam.sh>. All rights reserved. Use of
+// this source code is governed by the MIT license that can be found in
+// the LICENSE file.
+
 package main
 
 import (
@@ -8,15 +12,11 @@ type Flags struct {
 	Name string `name:"name" default:"world" help:"name to print"`
 }
 
-var cli = &clix.CLI[Flags]{
-	Application: clix.Application{
-		Name:        "simple-app",
-		Description: "a simple app that prints hello world",
-		Links:       clix.GithubLinks("github.com/lrstanley/clix", "master", "https://liam.sh/"),
-	},
-}
+var cli = &clix.CLI[Flags]{}
 
 func main() {
 	cli.ParseWithDefaults()
-	cli.Logger.Info("hello", "name", cli.Flags.Name)
+
+	logger := cli.GetLogger()
+	logger.Info("hello", "name", cli.Flags.Name)
 }

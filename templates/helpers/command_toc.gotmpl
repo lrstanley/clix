@@ -1,0 +1,24 @@
+{{- /*
+    expects a map[string]any with the following keys:
+    - Model: *kong.Application
+    - Node:  *kong.Node
+    - Depth: int
+*/}}
+{{- define "helpers/command/toc" }}
+{{ "  " | repeat $.Depth }}- [{{ quote_code (printf "%s %s" .Model.Name .Node.Path) }}](#command-{{ slug .Node.Path }})
+{{- if
+    and
+        (node_has_unhidden_children .Node)
+        (gt (len (children_by_type .Node "command")) 0)
+}}
+{{- range (children_by_type .Node "command") }}
+{{- template "helpers/command/toc" (
+    dict
+        "Model" $.Model
+        "Node" .
+        "Depth" (add_int $.Depth 1)
+    )
+}}
+{{- end }}{{- /* end: range children_by_type */}}
+{{- end }}{{- /* end: node_has_unhidden_children . */}}
+{{- end }}{{- /* end: define "helpers/command/toc" */}}

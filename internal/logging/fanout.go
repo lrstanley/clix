@@ -11,15 +11,15 @@ import (
 	"log/slog"
 )
 
-var _ slog.Handler = (*FanoutHandler)(nil) // Ensure we implement the [slog.Handler] interface.
+var _ slog.Handler = (*FanoutHandler)(nil) // Ensure we implement the [log/slog.Handler] interface.
 
-// FanoutHandler distributes log records to multiple [slog.Handler] instances.
+// FanoutHandler distributes log records to multiple [log/slog.Handler] instances.
 type FanoutHandler struct {
 	handlers []slog.Handler
 }
 
 // Fanout creates a new fanout handler that distributes records to multiple
-// [slog.Handler] instances.
+// [log/slog.Handler] instances.
 func Fanout(handlers ...slog.Handler) slog.Handler {
 	return &FanoutHandler{
 		handlers: handlers,
