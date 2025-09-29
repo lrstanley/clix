@@ -13,7 +13,7 @@ import (
 
 	"github.com/alecthomas/kong"
 	"github.com/lmittmann/tint"
-	"github.com/lrstanley/clix/v2/internal/logging"
+	"github.com/lrstanley/x/logging/handlers"
 )
 
 // WithLoggingPlugin adds the logging plugin to the CLI. This includes flags
@@ -125,7 +125,7 @@ func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool) (handler slog.Han
 			},
 		)
 	case level == -1:
-		handler = &logging.DiscardHandler{}
+		handler = handlers.NewDiscard()
 	case l.JSON:
 		handler = slog.NewJSONHandler(
 			os.Stderr,

@@ -13,3 +13,4 @@ dist
 vendor/*
 bin
 **/.env
+go.work

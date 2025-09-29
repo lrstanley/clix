@@ -2,6 +2,15 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
+// A simple example using the out-of-the-box functionality with clix, which includes
+// logging, version flags, loading of .env files, etc. Take a look at the help output
+// with:
+//
+//	$ go run . --help
+//
+// Or use the markdown generation logic using:
+//
+//	$ go run . generate-markdown > USAGE.md
 package main
 
 import (
@@ -16,7 +25,11 @@ var cli = &clix.CLI[Flags]{}
 
 func main() {
 	cli.ParseWithDefaults()
-
 	logger := cli.GetLogger()
+
+	if cli.Debug {
+		logger.Debug("thinking really hard...")
+	}
+
 	logger.Info("hello", "name", cli.Flags.Name)
 }

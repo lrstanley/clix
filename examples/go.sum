@@ -12,3 +12,7 @@ github.com/lmittmann/tint v1.1.2 h1:2CQzrL6rslrsyjqLDwD11bZ5OpLBPU+g3G/r5LSfS8w=
 github.com/lmittmann/tint v1.1.2/go.mod h1:HIS3gSy7qNwGCj+5oRjAutErFBl4BzdQP6cJZ0NfMwE=
 github.com/lrstanley/x/logging/handlers v0.0.0-20250929040648-16084399ed30 h1:VJXAtGnSWDg5GEsmrdSAjL+9HnYRWmhw8zpt61vzizU=
 github.com/lrstanley/x/logging/handlers v0.0.0-20250929040648-16084399ed30/go.mod h1:zGy2uwDOr4bZi6tWoiY+eDI4aPu9E9fjFzBBIz3qXsE=
+github.com/lrstanley/x/scheduler v0.0.0-20250929040648-16084399ed30 h1:1tph7+hHFhYx9XXKJFL2c4rm5ucN9R3us8ytvxK5+1Q=
+github.com/lrstanley/x/scheduler v0.0.0-20250929040648-16084399ed30/go.mod h1:Q0CRr8NCEn6SGSjHmZ2M0huOuE8iBH211kQ+EYZz2M8=
+golang.org/x/sync v0.17.0 h1:l60nONMj9l5drqw6jlhIELNv9I0A4OFgRsG9k2oT9Ug=
+golang.org/x/sync v0.17.0/go.mod h1:9KTHXmSnoGruLpwFjVSX0lNNA75CykiMECbovNTZqGI=
