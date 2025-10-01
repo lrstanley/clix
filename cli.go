@@ -48,7 +48,7 @@ func WithEnvFiles[T any](paths ...string) Option[T] {
 		if cli.checkAlreadyInit("env-files") {
 			return
 		}
-		cli.kongOptions = append(cli.kongOptions, kong.WithBeforeResolve(func() error {
+		cli.kongOptions = append(cli.kongOptions, kong.WithBeforeReset(func() error {
 			err := godotenv.Load(paths...)
 			if err != nil && len(paths) > 0 {
 				// Only throw an error if they explicitly provided paths.
