@@ -7,14 +7,16 @@ package clix
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 
 	"github.com/alecthomas/kong"
 )
 
 // WithAppInfo adds the provided application information to the CLI.
 func WithAppInfo[T any](app AppInfo) Option[T] {
+	var initialized atomic.Bool
 	return func(cli *CLI[T]) {
-		if cli.checkAlreadyInit("app-info") {
+		if initialized.Swap(true) {
 			return
 		}
 

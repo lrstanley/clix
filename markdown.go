@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"slices"
+	"sync/atomic"
 	"text/template"
 
 	"github.com/alecthomas/kong"
@@ -25,8 +25,10 @@ import (
 //   - CLIX_OUTPUT_PATH: path to write the markdown to, or '-' to write to stdout
 //     (defaults to stdout).
 func WithMarkdownPlugin[T any]() Option[T] {
+	var initialized atomic.Bool
+
 	return func(cli *CLI[T]) {
-		if cli.checkAlreadyInit("markdown") {
+		if initialized.Load() {
 			return
 		}
 
@@ -40,27 +42,13 @@ func WithMarkdownPlugin[T any]() Option[T] {
 				cmd,
 				"hidden",
 			),
-			// Do this to bypass all required flags that might be set by the end
-			// application.
-			kong.PostBuild(func(ctx *kong.Kong) error {
-				if !slices.Contains(os.Args, "generate-markdown") {
-					return nil
-				}
-
-				err := cmd.BeforeApply(ctx, cli.app, cli.version)
-				if err != nil {
-					return err
-				}
-				os.Exit(0)
-				return nil
-			}),
 		)
 	}
 }
 
 type MarkdownCommand struct{}
 
-func (m *MarkdownCommand) BeforeApply(
+func (m *MarkdownCommand) BeforeReset(
 	ctx *kong.Kong,
 	appInfo *AppInfo,
 	version *Version,

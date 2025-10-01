@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/alecthomas/kong"
@@ -22,8 +23,10 @@ import (
 // [log/slog.Handler] via [CLI.GetLogHandler] and the [log/slog.Logger] via
 // [CLI.GetLogger].
 func WithLoggingPlugin[T any](global bool) Option[T] {
+	var initialized atomic.Bool
+
 	return func(cli *CLI[T]) {
-		if cli.checkAlreadyInit("logging") {
+		if initialized.Load() {
 			return
 		}
 
@@ -34,6 +37,10 @@ func WithLoggingPlugin[T any](global bool) Option[T] {
 		flags.Logging = &LoggingPlugin{}
 		cli.Plugins = append(cli.Plugins, &flags)
 		cli.kongOptions = append(cli.kongOptions, kong.WithAfterApply(func() error {
+			if initialized.Swap(true) || cli.logHandler != nil {
+				return nil
+			}
+
 			logger, err := flags.Logging.CreateHandler(cli.Debug, global)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error creating logger: %v\n", err)

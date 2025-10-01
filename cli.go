@@ -7,8 +7,8 @@ package clix
 import (
 	"log/slog"
 	"os"
-	"slices"
 	"strconv"
+	"sync/atomic"
 
 	"github.com/alecthomas/kong"
 	"github.com/joho/godotenv"
@@ -27,11 +27,15 @@ func WithKongOptions[T any](opts ...kong.Option) Option[T] {
 // WithGithubDebug enables debug mode if the RUNNER_DEBUG environment variable is
 // set, which is set when running a Github Action in debug mode.
 func WithGithubDebug[T any]() Option[T] {
+	var initialized atomic.Bool
 	return func(cli *CLI[T]) {
-		if cli.checkAlreadyInit("github-debug") {
+		if initialized.Load() {
 			return
 		}
 		cli.kongOptions = append(cli.kongOptions, kong.WithBeforeApply(func(cli *CLI[T]) error {
+			if initialized.Swap(true) {
+				return nil
+			}
 			if runnerDebug, _ := strconv.ParseBool(os.Getenv("RUNNER_DEBUG")); runnerDebug {
 				cli.Debug = true
 			}
@@ -44,11 +48,15 @@ func WithGithubDebug[T any]() Option[T] {
 // provided paths. If no paths are provided, it will load from the current
 // working directory.
 func WithEnvFiles[T any](paths ...string) Option[T] {
+	var initialized atomic.Bool
 	return func(cli *CLI[T]) {
-		if cli.checkAlreadyInit("env-files") {
+		if initialized.Load() {
 			return
 		}
 		cli.kongOptions = append(cli.kongOptions, kong.WithBeforeReset(func() error {
+			if initialized.Swap(true) {
+				return nil
+			}
 			err := godotenv.Load(paths...)
 			if err != nil && len(paths) > 0 {
 				// Only throw an error if they explicitly provided paths.
@@ -145,12 +153,4 @@ func (cli *CLI[T]) ParseWithDefaults(options ...Option[T]) {
 			options...,
 		)...,
 	)
-}
-
-func (cli *CLI[T]) checkAlreadyInit(plugin string) bool {
-	if slices.Contains(cli.pluginsInitialized, plugin) {
-		return true
-	}
-	cli.pluginsInitialized = append(cli.pluginsInitialized, plugin)
-	return false
 }

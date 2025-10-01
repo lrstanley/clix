@@ -13,13 +13,15 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strings"
+	"sync/atomic"
 )
 
 // WithVersionPlugin adds the version plugin to the CLI. This includes flags
 // for --version, --version-json, etc.
 func WithVersionPlugin[T any]() Option[T] {
+	var initialized atomic.Bool
 	return func(cli *CLI[T]) {
-		if cli.checkAlreadyInit("version") {
+		if initialized.Swap(true) {
 			return
 		}
 		cli.Plugins = append(cli.Plugins, &VersionPlugin{})
@@ -39,17 +41,15 @@ type VersionPlugin struct {
 
 type VersionFlag bool
 
-func (v VersionFlag) AfterApply(ver *Version) error {
-	if v {
-		fmt.Println(ver.String()) //nolint:forbidigo
-		os.Exit(0)
-	}
+func (v VersionFlag) BeforeReset(ver *Version) error {
+	fmt.Println(ver.String()) //nolint:forbidigo
+	os.Exit(0)
 	return nil
 }
 
 type VersionJSONFlag bool
 
-func (v VersionJSONFlag) BeforeApply(ver *Version) error {
+func (v VersionJSONFlag) BeforeReset(ver *Version) error {
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "    ")
 	if err := enc.Encode(ver); err != nil {
