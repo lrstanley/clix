@@ -10,7 +10,12 @@
                 .Model.Detail
                 false
         )
-        .Model.Help
+        (
+            bool_or
+                (not (contains_fold .Model.Help ":: unknown"))
+                .Model.Help
+                false
+        )
         (
             bool_or
                 (not (contains_fold .AppInfo.Description ":: unknown"))
