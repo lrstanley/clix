@@ -4,12 +4,7 @@
 {{- template "helpers/app_description" . }}
 {{- template "helpers/toc" . }}
 {{- template "helpers/helpful_links" . }}
-
-## Usage
-
-```console
-$ {{ .Model.Name }}{{ .Model.Summary }}
-```
+{{- template "helpers/app_usage" . }}
 
 {{- /* Global flags */}}
 {{- if gt (len .Model.Flags) 0 }}

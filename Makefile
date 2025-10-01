@@ -10,6 +10,7 @@ up:
 generate: license
 	go generate -x ./...
 	cd examples/simple && go run . generate-markdown > README.md
+	cd examples/multiple-commands && go run . generate-markdown > README.md
 
 test:
 	gofmt -e -s -w .
