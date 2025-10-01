@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"slices"
 	"text/template"
 
 	"github.com/alecthomas/kong"
@@ -29,13 +30,31 @@ func WithMarkdownPlugin[T any]() Option[T] {
 			return
 		}
 
-		cli.kongOptions = append(cli.kongOptions, kong.DynamicCommand(
-			"generate-markdown",
-			"generate markdown documentation and write to stdout",
-			"",
-			&MarkdownCommand{},
-			"hidden",
-		))
+		cmd := &MarkdownCommand{}
+
+		cli.kongOptions = append(
+			cli.kongOptions, kong.DynamicCommand(
+				"generate-markdown",
+				"generate markdown documentation and write to stdout",
+				"",
+				cmd,
+				"hidden",
+			),
+			// Do this to bypass all required flags that might be set by the end
+			// application.
+			kong.PostBuild(func(ctx *kong.Kong) error {
+				if !slices.Contains(os.Args, "generate-markdown") {
+					return nil
+				}
+
+				err := cmd.BeforeApply(ctx, cli.app, cli.version)
+				if err != nil {
+					return err
+				}
+				os.Exit(0)
+				return nil
+			}),
+		)
 	}
 }
 
