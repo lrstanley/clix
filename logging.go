@@ -18,7 +18,9 @@ import (
 
 // WithLoggingPlugin adds the logging plugin to the CLI. This includes flags
 // for controlling log/slog logging levels, logging to files, JSON output, and
-// supports setting the global slog logger.
+// supports setting the global slog logger. You can access the resulting
+// [log/slog.Handler] via [CLI.GetLogHandler] and the [log/slog.Logger] via
+// [CLI.GetLogger].
 func WithLoggingPlugin[T any](global bool) Option[T] {
 	return func(cli *CLI[T]) {
 		if cli.checkAlreadyInit("logging") {
