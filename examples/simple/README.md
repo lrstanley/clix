@@ -5,10 +5,6 @@
 -->
 # :gear: CLI Usage Documentation: simple
 
-> github.com/lrstanley/clix/v2/examples :: \(devel\)<br>  build commit :: unknown<br>    build date :: unknown<br>    go version :: go1.25.1 linux/amd64<br>
-
----
-
 ## Table of Contents
 
 - [Usage](#usage)
