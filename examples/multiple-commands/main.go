@@ -29,21 +29,19 @@ type Flags struct {
 	Status struct{} `cmd:"" default:"" help:"Get status information."`
 }
 
-var cli = &clix.CLI[Flags]{}
+var cli = clix.NewWithDefaults(
+	clix.WithAppInfo[Flags](clix.AppInfo{
+		Name:        "simple-app",
+		Description: "a simple app that supports multiple commands",
+		Links:       clix.GithubLinks("github.com/lrstanley/clix", "master", "https://liam.sh/"),
+	}),
+	// You can provide any normal kong options here like so:
+	// clix.WithKongOptions[Flags](
+	// 	kong.Name("simple-app"),
+	// ),
+)
 
 func main() {
-	cli.ParseWithDefaults(
-		clix.WithAppInfo[Flags](clix.AppInfo{
-			Name:        "simple-app",
-			Description: "a simple app that supports multiple commands",
-			Links:       clix.GithubLinks("github.com/lrstanley/clix", "master", "https://liam.sh/"),
-		}),
-		// You can provide any normal kong options here like so:
-		// clix.WithKongOptions[Flags](
-		// 	kong.Name("simple-app"),
-		// ),
-	)
-
 	logger := cli.GetLogger()
 
 	switch cli.Context.Command() {

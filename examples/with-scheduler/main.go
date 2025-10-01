@@ -25,10 +25,9 @@ type Flags struct {
 	Service *ServiceConfig `prefix:"service" envprefix:"SERVICE_" group:"Service flags"`
 }
 
-var cli = &clix.CLI[Flags]{}
+var cli = clix.NewWithDefaults[Flags]()
 
 func main() {
-	cli.ParseWithDefaults()
 	logger := cli.GetLogger()
 
 	ctx := context.TODO()

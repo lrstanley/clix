@@ -67,34 +67,14 @@ func WithEnvFiles[T any](paths ...string) Option[T] {
 	}
 }
 
-// CLI is the main construct for clix. Do not manually set any fields until
-// you've called [Parse] or [ParseWithDefaults].
-//
-// Supported struct tags: https://github.com/alecthomas/kong#supported-tags
-//
-// Initialize a new CLI like so:
-//
-//	var (
-//		cli    = &clix.CLI[Flags]{} // Where Flags is a user-provided type (struct).
-//	)
-//
-//	type Flags struct {
-//		// Normal kong flags.
-//		SomeFlag string `env:"SOME_FLAG" help:"some flag"`
-//	}
-//
-//	func main() {
-//		cli.ParseWithDefaults()
-//		// [...]
-//	}
+// CLI is the main construct for clix, obtained via [New] or [NewWithDefaults].
 type CLI[T any] struct {
-	kong.Plugins                     // Kong-specific plugins.
-	kongOptions        []kong.Option `kong:"-"`
-	pluginsInitialized []string      `kong:"-"`
-	version            *Version      `kong:"-"`
-	app                *AppInfo      `kong:"-"`
-	logHandler         slog.Handler  `kong:"-"`
-	logger             *slog.Logger  `kong:"-"`
+	kong.Plugins               // Kong-specific plugins.
+	kongOptions  []kong.Option `kong:"-"`
+	version      *Version      `kong:"-"`
+	app          *AppInfo      `kong:"-"`
+	logHandler   slog.Handler  `kong:"-"`
+	logger       *slog.Logger  `kong:"-"`
 
 	// Context is the context returned by kong after initial parsing.
 	Context *kong.Context `kong:"-"`
@@ -107,11 +87,13 @@ type CLI[T any] struct {
 	Debug bool `short:"D" name:"debug" help:"enables debug mode"`
 }
 
-// Parse executes the cli parser, with the provided options (no defaults are
-// configured). Order of options is important. See also [CLI.ParseWithDefaults].
-func (cli *CLI[T]) Parse(options ...Option[T]) {
-	if cli.Flags == nil {
-		cli.Flags = new(T)
+// New executes the cli parser, with the provided options (no defaults are
+// configured). Order of options is important. See also [NewWithDefaults].
+//
+// Supported struct tags: https://github.com/alecthomas/kong#supported-tags
+func New[T any](options ...Option[T]) *CLI[T] {
+	cli := &CLI[T]{
+		Flags: new(T),
 	}
 
 	cli.app = &AppInfo{}
@@ -136,20 +118,41 @@ func (cli *CLI[T]) Parse(options ...Option[T]) {
 	}
 
 	cli.Context = kong.Parse(cli, cli.kongOptions...)
+	return cli
 }
 
-// ParseWithDefaults executes the cli parser, with the provided options and associated
-// recommended defaults. Order of options is important. See also [CLI.Parse].
-func (cli *CLI[T]) ParseWithDefaults(options ...Option[T]) {
-	cli.Parse(
+// Defaults returns the default options for clix.
+func Defaults[T any]() []Option[T] {
+	return []Option[T]{
+		WithEnvFiles[T](),
+		WithGithubDebug[T](),
+		WithLoggingPlugin[T](true),
+		WithVersionPlugin[T](),
+		WithMarkdownPlugin[T](),
+	}
+}
+
+// NewWithDefaults executes the cli parser, with the provided options and associated
+// recommended defaults. Order of options is important. See also [New] and [Defaults].
+//
+// Supported struct tags: https://github.com/alecthomas/kong#supported-tags
+//
+// Initialize a new CLI like so:
+//
+//	type Flags struct {
+//		// Normal kong flags.
+//		SomeFlag string `env:"SOME_FLAG" help:"some flag"`
+//	}
+//
+//	var cli = clix.NewWithDefaults[Flags]() // Where Flags is a user-provided type (struct).
+//
+//	func main() {
+//		// [...]
+//	}
+func NewWithDefaults[T any](options ...Option[T]) *CLI[T] {
+	return New(
 		append(
-			[]Option[T]{
-				WithEnvFiles[T](),
-				WithGithubDebug[T](),
-				WithLoggingPlugin[T](true),
-				WithVersionPlugin[T](),
-				WithMarkdownPlugin[T](),
-			},
+			Defaults[T](),
 			options...,
 		)...,
 	)

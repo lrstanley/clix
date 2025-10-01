@@ -21,10 +21,9 @@ type Flags struct {
 	Name string `name:"name" default:"world" help:"name to print"`
 }
 
-var cli = &clix.CLI[Flags]{}
+var cli = clix.NewWithDefaults[Flags]()
 
 func main() {
-	cli.ParseWithDefaults()
 	logger := cli.GetLogger()
 
 	if cli.Debug {
