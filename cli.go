@@ -114,7 +114,6 @@ func (cli *CLI[T]) Parse(options ...Option[T]) {
 			FlagsLast: true,
 		}),
 		kong.UsageOnError(),
-		kong.Name(cli.app.Name),
 		kong.Description(cli.app.Description),
 		kong.Bind(cli.version),
 		kong.Bind(cli.app),

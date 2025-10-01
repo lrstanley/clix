@@ -1,0 +1,13 @@
+{{- /*
+    Links Information.
+    expects the root context to be passed in.
+*/}}
+{{- define "helpers/helpful_links" }}
+{{- if (gt (len .AppInfo.Links) 0) }}
+
+## Helpful Links
+{{ range .AppInfo.Links }}
+- [{{ sanitize_md (.Name | title) }}]({{ .URL }})
+{{- end }}
+{{- end }}{{- /* end: .AppInfo.Links */}}
+{{- end }}{{- /* end: define "helpers/helpful_links" */}}

@@ -1,0 +1,28 @@
+{{- /*
+    expects the root context to be passed in.
+*/}}
+{{- define "helpers/app_description" }}
+{{- $desc := sanitize_md (
+    or
+        (
+            bool_or
+                (not (contains_fold .Model.Detail ":: unknown"))
+                .Model.Detail
+                false
+        )
+        .Model.Help
+        (
+            bool_or
+                (not (contains_fold .AppInfo.Description ":: unknown"))
+                .AppInfo.Description
+                false
+        )
+        ""
+) }}
+{{- if $desc }}
+
+> {{ $desc }}
+
+---
+{{- end }}
+{{- end }}{{- /* end: define "helpers/app_description" */}}

@@ -143,6 +143,10 @@ var (
 		"mult_int": func(a, b int) int {
 			return a * b
 		},
+		"contains": strings.Contains,
+		"contains_fold": func(a, b string) bool {
+			return strings.Contains(strings.ToLower(a), strings.ToLower(b))
+		},
 		"join":  strings.Join,
 		"trim":  strings.TrimSpace,
 		"upper": strings.ToUpper,

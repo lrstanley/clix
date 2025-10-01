@@ -17,12 +17,16 @@ func WithAppInfo[T any](app AppInfo) Option[T] {
 		if cli.checkAlreadyInit("app-info") {
 			return
 		}
+
+		if app.Name != "" {
+			cli.kongOptions = append(cli.kongOptions, kong.Name(app.Name))
+		}
+
+		if app.Description != "" {
+			cli.kongOptions = append(cli.kongOptions, kong.Description(app.Description))
+		}
+
 		cli.app.Inherit(app)
-		cli.kongOptions = append(
-			cli.kongOptions,
-			kong.Name(cli.app.Name),
-			kong.Description(cli.app.Description),
-		)
 	}
 }
 
@@ -56,6 +60,12 @@ func (a *AppInfo) Inherit(app AppInfo) {
 	if len(app.Links) > 0 {
 		a.Links = app.Links
 	}
+}
+
+// IsModuleName returns true if the name looks like a module path-style format,
+// otherwise false.
+func (a *AppInfo) IsModuleName() bool {
+	return strings.Contains(a.Name, "/")
 }
 
 // Link allows you to define a link to be included in the version and usage

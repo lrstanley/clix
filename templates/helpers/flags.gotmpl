@@ -1,3 +1,6 @@
+{{- /*
+    expects []*kong.Flag to be passed in.
+*/}}
 {{- define "helpers/flags/table" }}
 {{- if gt (len $) 0 }}
 {{- $rows := slice (slice "Flag(s)" "Env vars" "Type" "Help") }}
