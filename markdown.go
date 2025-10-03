@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync/atomic"
 	"text/template"
 
@@ -59,19 +60,34 @@ func (m *MarkdownCommand) BeforeReset(
 	if v := os.Getenv("CLIX_TEMPLATE_PATH"); v == "" {
 		output, err = m.GenerateMarkdown(ctx.Model, templates, appInfo, version)
 	} else {
-		var tmpl *template.Template
-		tmpl, err = template.New("").
-			Funcs(tmplFuncMap).
-			ParseFS(os.DirFS(v), templatePaths...)
+		var files []string
+		err = filepath.Walk(v, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				return nil
+			}
+			files = append(files, path)
+			return nil
+		})
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to walk template directory: %w", err)
+		}
+
+		var tmpl *template.Template
+		tmpl, err = templates.ParseFiles(files...)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to parse templates: %v\n", err)
+			os.Exit(1)
 		}
 
 		output, err = m.GenerateMarkdown(ctx.Model, tmpl, appInfo, version)
 	}
 
 	if err != nil {
-		return err
+		fmt.Fprintf(os.Stderr, "failed to generate markdown: %v\n", err)
+		os.Exit(1)
 	}
 
 	if v := os.Getenv("CLIX_OUTPUT_PATH"); v == "-" || v == "" {
@@ -87,6 +103,8 @@ func (m *MarkdownCommand) BeforeReset(
 	return nil
 }
 
+// GenerateMarkdown generates the markdown documentation for the CLI, returning the
+// markdown as a string.
 func (m *MarkdownCommand) GenerateMarkdown(
 	model *kong.Application,
 	tmpl *template.Template,
