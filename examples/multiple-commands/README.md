@@ -68,7 +68,6 @@ Below is a list of available commands. Refer to the full usage section for per-c
 > **Description:** Remove files.
 
 ```console
-# Usage:
 $ simple-app rm <path> ... [flags]
 ```
 
@@ -88,7 +87,6 @@ $ simple-app rm <path> ... [flags]
 > **Description:** List paths.
 
 ```console
-# Usage:
 $ simple-app ls [<paths> ...] [flags]
 ```
 
@@ -98,6 +96,5 @@ $ simple-app ls [<paths> ...] [flags]
 > **Description:** Get status information.
 
 ```console
-# Usage:
 $ simple-app status [flags]
 ```
