@@ -1,20 +1,25 @@
 {{- /*
-    expects []*kong.Flag to be passed in.
+    expects a map[string]any with the following keys:
+    - Flags: []*kong.Flag
+    - Node: *kong.Node
 */}}
 {{- define "helpers/flags/table" }}
-{{- if gt (len $) 0 }}
+{{- if gt (len $.Flags) 0 }}
 {{- $rows := slice (slice "Flag(s)" "Env vars" "Type" "Help") }}
-{{- range $ }}
+{{- range $.Flags }}
+{{- $slug := slug (printf "flag-%s%s" (bool_or $.Node.Path (printf "%s-" $.Node.Path) "") .Name) }}
 {{- $rows = slice_append $rows (
     slice
         (
-            printf "%s%s%s"
+            printf "<a id=%q></a>[🔗](#%s) %s%s%s"
+                $slug
+                $slug
                 (quote_code .String)
                 ((bool_or .Required "<br>**required: true**" ""))
                 (
                     bool_or
                         .EnumSlice
-                        (printf "<br>**choices**: %s" (quote_code (join .EnumSlice "\\|")))
+                        (printf "<br><br>**flag options**:<br>%s" (html_list (quote_code .EnumSlice)))
                         ""
                 )
         )

@@ -1,5 +1,5 @@
 {{- template "helpers/header" . }}
-# :gear: CLI Usage Documentation: {{ .Model.Name }}
+# ⚙️ CLI Usage Documentation: {{ .Model.Name }}
 
 {{- template "helpers/app_description" . }}
 {{- template "helpers/toc" . }}
@@ -9,11 +9,15 @@
 {{- /* Global flags */}}
 {{- if gt (len .Model.Flags) 0 }}
 {{""}}
-## Global flags
+## Global Flags
 
 The following flags are available globally. See command sections for additional flags.
 
-{{ template "helpers/flags/table" (flags_by_group .Model.Flags "") }}
+{{ template "helpers/flags/table" (
+    dict
+        "Flags" (flags_by_group .Model.Flags "")
+        "Node" .Model.Node
+) }}
 
 {{- range flag_groups .Model.Flags }}
 
@@ -26,7 +30,11 @@ The following flags are available globally. See command sections for additional 
 <a id="global-flags-{{ slug .Title }}"></a>
 ### {{ .Title | title }}
 
-{{ template "helpers/flags/table" (flags_by_group $.Model.Flags .Key) }}
+{{ template "helpers/flags/table" (
+    dict
+        "Flags" (flags_by_group $.Model.Flags .Key)
+        "Node" $.Model.Node
+) }}
 {{- end }}{{- /* end: flag_groups */}}
 {{- end }}{{- /* end: Global flags */}}
 
@@ -48,8 +56,7 @@ Below is a list of available commands. Refer to the full usage section for per-c
         "Model" $.Model
         "Node" .
         "Depth" 3
-    )
-}}
+) }}
 {{- end }}
 
 {{- end }}{{- /* end: Commands */ -}}

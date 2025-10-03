@@ -6,7 +6,7 @@
 */}}
 {{- define "helpers/command" }}
 <a id="command-{{ slug .Node.Path }}"></a>
-### {{ quote_code (printf "$ %s %s" .Model.Name .Node.Path) }}
+## {{ quote_code (printf "$ %s %s" .Model.Name .Node.Path) }}
 
 > **Description:** {{ or .Node.Detail .Node.Help "n/a" }}
 
@@ -19,13 +19,21 @@ $ {{ .Model.Name }} {{ .Node.Summary }}
 {{""}}
 {{ "#" | repeat (add_int $.Depth 1) }} Flags
 
-{{ template "helpers/flags/table" (flags_by_group .Node.Flags "") }}
+{{ template "helpers/flags/table" (
+    dict
+        "Flags" (flags_by_group .Node.Flags "")
+        "Node" .Node
+) }}
 
 {{- range flag_groups .Node.Flags }}
 {{""}}
-##### {{ .Title | title }}
+### {{ .Title | title }}
 
-{{ template "helpers/flags/table" (flags_by_group $.Node.Flags .Key) }}
+{{ template "helpers/flags/table" (
+    dict
+        "Flags" (flags_by_group $.Node.Flags .Key)
+        "Node" $.Node
+) }}
 {{- end }}{{- /* end: flag_groups */}}
 {{- end }}{{- /* end: if .Node.Flags */}}
 

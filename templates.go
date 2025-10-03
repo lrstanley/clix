@@ -256,6 +256,18 @@ var (
 			}
 			return buf.String()
 		},
+		"html_list": func(items []string) string {
+			if len(items) == 0 {
+				return ""
+			}
+			var buf strings.Builder
+			buf.WriteString("<ul>")
+			for _, item := range items {
+				buf.WriteString(fmt.Sprintf("<li>%s</li>", item))
+			}
+			buf.WriteString("</ul>")
+			return buf.String()
+		},
 	}
 )
 

@@ -3,7 +3,7 @@
 
   $ simple-app generate-markdown
 -->
-# :gear: CLI Usage Documentation: simple-app
+# ⚙️ CLI Usage Documentation: simple-app
 
 > a simple app that supports multiple commands
 
@@ -37,25 +37,25 @@ $ simple-app <command> [flags]
 
 The default command when invoked without an explicit command is [status](#command-status).
 
-## Global flags
+## Global Flags
 
 The following flags are available globally. See command sections for additional flags.
 
-| Flag(s)          | Env vars | Type     | Help                                                |
-|------------------|----------|----------|-----------------------------------------------------|
-| `-h, --help`     | -        | **bool** | Show context\-sensitive help.                       |
-| `-v, --version`  | -        | **bool** | prints version information and exits                |
-| `--version-json` | -        | **bool** | prints version information in JSON format and exits |
-| `-D, --debug`    | -        | **bool** | enables debug mode                                  |
+| Flag(s)                                                                   | Env vars | Type     | Help                                                |
+|---------------------------------------------------------------------------|----------|----------|-----------------------------------------------------|
+| <a id="flag-help"></a>[🔗](#flag-help) `-h, --help`                     | -        | **bool** | Show context\-sensitive help.                       |
+| <a id="flag-version"></a>[🔗](#flag-version) `-v, --version`            | -        | **bool** | prints version information and exits                |
+| <a id="flag-version-json"></a>[🔗](#flag-version-json) `--version-json` | -        | **bool** | prints version information in JSON format and exits |
+| <a id="flag-debug"></a>[🔗](#flag-debug) `-D, --debug`                  | -        | **bool** | enables debug mode                                  |
 
 <a id="global-flags-logging-flags"></a>
 ### Logging Flags
 
-| Flag(s)                                                               | Env vars    | Type       | Help                                         |
-|-----------------------------------------------------------------------|-------------|------------|----------------------------------------------|
-| `--log.level="info"`<br>**choices**: `none\|debug\|info\|warn\|error` | `LOG_LEVEL` | **string** | logging level \(none: disables logging\)     |
-| `--log.json`                                                          | `LOG_JSON`  | **bool**   | output logs in JSON format                   |
-| `--log.path=STRING`                                                   | `LOG_PATH`  | **string** | path to log file \(disables stderr logging\) |
+| Flag(s)                                                                                                                                                                                    | Env vars    | Type       | Help                                         |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|------------|----------------------------------------------|
+| <a id="flag-log-level"></a>[🔗](#flag-log-level) `--log.level="info"`<br><br>**flag options**:<br><ul><li>`none`</li><li>`debug`</li><li>`info`</li><li>`warn`</li><li>`error`</li></ul> | `LOG_LEVEL` | **string** | logging level \(none: disables logging\)     |
+| <a id="flag-log-json"></a>[🔗](#flag-log-json) `--log.json`                                                                                                                              | `LOG_JSON`  | **bool**   | output logs in JSON format                   |
+| <a id="flag-log-path"></a>[🔗](#flag-log-path) `--log.path=STRING`                                                                                                                       | `LOG_PATH`  | **string** | path to log file \(disables stderr logging\) |
 
 
 ## Commands
@@ -63,7 +63,7 @@ The following flags are available globally. See command sections for additional 
 Below is a list of available commands. Refer to the full usage section for per-command help.
 
 <a id="command-rm"></a>
-### `$ simple-app rm`
+## `$ simple-app rm`
 
 > **Description:** Remove files.
 
@@ -74,16 +74,16 @@ $ simple-app rm <path> ... [flags]
 
 #### Flags
 
-| Flag(s)                | Env vars | Type       | Help                      |
-|------------------------|----------|------------|---------------------------|
-| `-u, --user="default"` | -        | **string** | Run as user.              |
-| `-f, --force`          | -        | **bool**   | Force removal.            |
-| `-r, --recursive`      | -        | **bool**   | Recursively remove files. |
-| `--delay=1s`           | -        | **int64**  | testing time.Duration.    |
+| Flag(s)                                                                    | Env vars | Type       | Help                      |
+|----------------------------------------------------------------------------|----------|------------|---------------------------|
+| <a id="flag-rm-user"></a>[🔗](#flag-rm-user) `-u, --user="default"`      | -        | **string** | Run as user.              |
+| <a id="flag-rm-force"></a>[🔗](#flag-rm-force) `-f, --force`             | -        | **bool**   | Force removal.            |
+| <a id="flag-rm-recursive"></a>[🔗](#flag-rm-recursive) `-r, --recursive` | -        | **bool**   | Recursively remove files. |
+| <a id="flag-rm-delay"></a>[🔗](#flag-rm-delay) `--delay=1s`              | -        | **int64**  | testing time.Duration.    |
 
 
 <a id="command-ls"></a>
-### `$ simple-app ls`
+## `$ simple-app ls`
 
 > **Description:** List paths.
 
@@ -93,7 +93,7 @@ $ simple-app ls [<paths> ...] [flags]
 ```
 
 <a id="command-status"></a>
-### `$ simple-app status`
+## `$ simple-app status`
 
 > **Description:** Get status information.
 
