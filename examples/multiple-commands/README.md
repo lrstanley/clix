@@ -73,12 +73,12 @@ $ simple-app rm <path> ... [flags]
 
 #### Flags
 
-| Flag(s)                                                                    | Env vars | Type       | Help                      |
-|----------------------------------------------------------------------------|----------|------------|---------------------------|
-| <a id="flag-rm-user"></a>[🔗](#flag-rm-user) `-u, --user="default"`      | -        | **string** | Run as user.              |
-| <a id="flag-rm-force"></a>[🔗](#flag-rm-force) `-f, --force`             | -        | **bool**   | Force removal.            |
-| <a id="flag-rm-recursive"></a>[🔗](#flag-rm-recursive) `-r, --recursive` | -        | **bool**   | Recursively remove files. |
-| <a id="flag-rm-delay"></a>[🔗](#flag-rm-delay) `--delay=1s`              | -        | **int64**  | testing time.Duration.    |
+| Flag(s)                                                                    | Env vars | Type                        | Help                      |
+|----------------------------------------------------------------------------|----------|-----------------------------|---------------------------|
+| <a id="flag-rm-user"></a>[🔗](#flag-rm-user) `-u, --user="default"`      | -        | **string**                  | Run as user.              |
+| <a id="flag-rm-force"></a>[🔗](#flag-rm-force) `-f, --force`             | -        | **bool**                    | Force removal.            |
+| <a id="flag-rm-recursive"></a>[🔗](#flag-rm-recursive) `-r, --recursive` | -        | **bool**                    | Recursively remove files. |
+| <a id="flag-rm-delay"></a>[🔗](#flag-rm-delay) `--delay=1s`              | -        | **int64** (_time.Duration_) | testing time.Duration.    |
 
 
 <a id="command-ls"></a>

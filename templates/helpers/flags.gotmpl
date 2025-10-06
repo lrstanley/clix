@@ -24,7 +24,16 @@
                 )
         )
         (or (join (quote_code .Envs) "<br>") "-")
-        (bold (sanitize_md .Target.Kind))
+        (
+            bool_or
+                (
+                    or
+                        (eq .Target.Kind.String .Target.Type.String)
+                        (has_prefix .Target.Type.String "kong.")
+                        (has_prefix .Target.Type.String "clix.")
+                )
+                (bold (sanitize_md .Target.Kind))
+                (printf "%s (_%s_)" (bold (sanitize_md .Target.Kind)) (sanitize_md .Target.Type)))
         (sanitize_md .Help)
 ) }}
 {{- end }}

@@ -41,6 +41,6 @@ The following flags are available globally. See command sections for additional 
 <a id="global-flags-service-flags"></a>
 ### Service Flags
 
-| Flag(s)                                                                                   | Env vars           | Type      | Help                        |
-|-------------------------------------------------------------------------------------------|--------------------|-----------|-----------------------------|
-| <a id="flag-service-interval"></a>[🔗](#flag-service-interval) `--service.interval=30s` | `SERVICE_INTERVAL` | **int64** | interval to run the service |
+| Flag(s)                                                                                   | Env vars           | Type                        | Help                        |
+|-------------------------------------------------------------------------------------------|--------------------|-----------------------------|-----------------------------|
+| <a id="flag-service-interval"></a>[🔗](#flag-service-interval) `--service.interval=30s` | `SERVICE_INTERVAL` | **int64** (_time.Duration_) | interval to run the service |

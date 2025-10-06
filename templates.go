@@ -147,11 +147,13 @@ var (
 		"contains_fold": func(a, b string) bool {
 			return strings.Contains(strings.ToLower(a), strings.ToLower(b))
 		},
-		"join":  strings.Join,
-		"trim":  strings.TrimSpace,
-		"upper": strings.ToUpper,
-		"lower": strings.ToLower,
-		"title": strings.Title,
+		"has_prefix": strings.HasPrefix,
+		"has_suffix": strings.HasSuffix,
+		"join":       strings.Join,
+		"trim":       strings.TrimSpace,
+		"upper":      strings.ToUpper,
+		"lower":      strings.ToLower,
+		"title":      strings.Title,
 		// Switch order so that "foo" | repeat 5
 		"repeat": func(count int, str string) string { return strings.Repeat(str, count) },
 		"dict": func(args ...any) map[string]any {
