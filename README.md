@@ -138,10 +138,35 @@ Git tags, the appropriate tag should be applied as the version, rather than
 `(devel)`.
 
 ```console
+$ ./myproject --help
+Usage: myproject <command> [flags]
+
+github.com/user/project :: (devel)
+
+    build commit :: 063bc199778e1ae617c35b70608e4ef104d6ce31
+      build date :: 2025-10-06T04:35:02Z
+      go version :: go1.25.1 linux/amd64
+
+Flags:
+  -h, --help            Show context-sensitive help.
+  -v, --version         prints version information and exits
+      --version-json    prints version information in JSON format and exits
+      --name="world"    name to print
+  -D, --debug           enables debug mode
+
+Logging flags
+  --log.level="info"    logging level (none: disables logging) ($LOG_LEVEL)
+  --log.json            output logs in JSON format ($LOG_JSON)
+  --log.path=STRING     path to log file (disables stderr logging) ($LOG_PATH)
+```
+
+And version output:
+
+```console
 $ ./myproject --version
-github.com/lrstanley/clix/v2/examples :: (devel)
-|  build commit :: 5f5f791b792798de3f26c509f16f52a6b6111c4d
-|    build date :: 2025-10-03T08:53:55Z
+github.com/user/project :: (devel)
+|  build commit :: 063bc199778e1ae617c35b70608e4ef104d6ce31
+|    build date :: 2025-10-06T04:35:02Z
 |    go version :: go1.25.1 linux/amd64
 
 build options:
@@ -156,9 +181,9 @@ build options:
 |          GOOS :: linux
 |       GOAMD64 :: v1
 |           vcs :: git
-|  vcs.revision :: 5f5f791b792798de3f26c509f16f52a6b6111c4d
-|      vcs.time :: 2025-10-03T08:53:55Z
-|  vcs.modified :: true
+|  vcs.revision :: 063bc199778e1ae617c35b70608e4ef104d6ce31
+|      vcs.time :: 2025-10-06T04:35:02Z
+|  vcs.modified :: false
 
 dependencies:
   h1:iq6aMJDcFYP9uFrLdsiZQ2ZMmcshduyGv4Pek0MQPW0= :: github.com/alecthomas/kong :: v1.12.1
