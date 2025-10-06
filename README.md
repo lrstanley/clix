@@ -264,6 +264,9 @@ High-level changes:
 - Markdown generation now no longer requires "required" flags to be set, which was
   quite annoying before. It has moved from `--generate-markdown` (a flag) to
   `generate-markdown` (a command).
+- Runner functionality has moved to an external package, [github.com/lrstanley/x/scheduler](https://pkg.go.dev/github.com/lrstanley/x/scheduler). It now supports crontab-style intervals,
+  and a builder-style interface for creating jobs. See [examples/with-scheduler](./examples/with-scheduler)
+  for an example.
 
 See the [examples](./examples) for more details on on what your app should look like.
 
