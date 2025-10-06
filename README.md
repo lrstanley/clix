@@ -58,7 +58,6 @@
 ## :link: Table of Contents
 
   - [Features](#sparkles-features)
-  - [TODO](#ballot_box_with_check-todo)
   - [Usage](#gear-usage)
   - [Example help output](#example-help-output)
   - [Generate Markdown](#generate-markdown)
@@ -73,38 +72,36 @@
 
 ## :sparkles: Features
 
-- go-flags wrapper, that handles parsing and decoding, with additional
-  helpers. Uses Go 1.18's generics to allow embedding your own custom struct.
-- Auto-generated logger, and auto-provided logger flags that:
-  - allows users to switch between plain-text, colored/pretty, JSON output
-    (and quiet for no output).
-  - Allows configuring the level dynamically.
-  - Uses the built-in debug flag to automatically change the logging level.
-- Built-in `--debug` flag.
-- Built-in `--version` flag that provides a lot of useful features:
-  - Using Go 1.18's build metadata, the ability to use that as the version
+**clix** is a [kong](https://github.com/alecthomas/kong) wrapper, that handles parsing of struct
+tags, unmarshalling config files, DI, and more. Includes builtin plugins for:
+
+- Logging (JSON, pretty printed, logging to a file, or discarding) using `log/slog`.
+  - Exposed handler and logger which you can use as a base for any additional
+    logging configuration.
+  - Change logging levels easily (and automatically when using `--debug`).
+- Versioning (`--version`, `--version-json`) which aids in printing version
+  information.
+  - Exposes Go 1.18's build metadata, the ability to use that as the version
     info, automatically using VCS information if available.
   - Printing dependencies and build flags.
   - Embedding useful links (support, repo, homepage, etc) in both version
     output, and help output.
-  - Colored output!
-- `--generate-markdown` flag (hidden) that allows generating markdown from
-  the CLI's help information (see below!).
-- Uses [godotenv](github.com/joho/godotenv) to auto-load environment variables
+- Markdown (generate markdown from the CLI's help information). See [example 1](./examples/simple/README.md)
+  and [example 2](./examples/multiple-commands/README.md). See [below](#generate-markdown)
+  for more details.
+- Built-in `--debug` flag.
+- [godotenv](github.com/joho/godotenv) integration to auto-load environment variables
   from `.env` files, before parsing flags.
-- Many flags to enable/disable functionality to suit your needs.
 
-## :ballot_box_with_check: TODO
-
-- [ ] Generate commands/sub-commands/etc ([example](https://github.com/jessevdk/go-flags/pull/364))
-- [ ] Custom markdown formatting
+**clix** is configurable, so all of the above can be turned on/off, with a reasonable
+default configuration that should work for most basic apps.
 
 ## :gear: Usage
 
 <!-- template:begin:goget -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ```console
-go get -u github.com/lrstanley/clix@latest
+go get -u github.com/lrstanley/clix/v2@latest
 ```
 <!-- template:end:goget -->
 
@@ -114,38 +111,23 @@ Example:
 package main
 
 import (
- "github.com/apex/log"
- clix "github.com/lrstanley/clix"
-)
-
-var (
-  cli = &clix.CLI[Flags]{
-  Links: clix.GithubLinks("github.com/lrstanley/myproject", "master", "https://mysite.com"),
- }
- logger log.Interface
+	"github.com/lrstanley/clix/v2"
 )
 
 type Flags struct {
- EnableHTTP bool   `short:"e" long:"enable-http" description:"enable the http server"`
- File       string `env:"FILE" short:"f" long:"file" description:"some file that does something"`
-
- SubFlags struct {
-  Username string `env:"USERNAME" short:"u" long:"username" default:"admin" description:"example username"`
-  Password string `env:"PASSWORD" short:"p" long:"password" description:"example password"`
- } `group:"Example Group" namespace:"example" env-namespace:"EXAMPLE"`
+	Name string `name:"name" default:"world" help:"name to print"`
 }
 
-func main() {
- // Initializes cli flags, and a pre-configured logger, based off user-provided
- // flags (e.g. --log.json, --log.level, etc). Also automatically handles
- // --version, --help, etc.
- cli.Parse()
- logger = cli.Logger
+var cli = clix.NewWithDefaults[Flags]()
 
- logger.WithFields(log.Fields{
-  "debug":     cli.Debug,
-  "file_path": cli.Flags.File,
- }).Info("hello world")
+func main() {
+	logger := cli.GetLogger()
+
+	if cli.Debug {
+		logger.Debug("thinking really hard...")
+	}
+
+	logger.Info("hello", "name", cli.Flags.Name)
 }
 ```
 
@@ -157,115 +139,108 @@ Git tags, the appropriate tag should be applied as the version, rather than
 
 ```console
 $ ./myproject --version
-github.com/lrstanley/myproject :: (devel)
-  build commit :: 2a00b14d2ff16b79ecbb2afc54f480c2c1e28172
-    build date :: unknown
-    go version :: go1.18.1 linux/amd64
-
-helpful links:
-      homepage :: https://myproject
-        github :: https://github.com/lrstanley/myproject
-        issues :: https://github.com/lrstanley/myproject/issues/new/choose
-       support :: https://github.com/lrstanley/myproject/blob/master/.github/SUPPORT.md
-  contributing :: https://github.com/lrstanley/myproject/blob/master/.github/CONTRIBUTING.md
-      security :: https://github.com/lrstanley/myproject/security/policy
+github.com/lrstanley/clix/v2/examples :: (devel)
+|  build commit :: 5f5f791b792798de3f26c509f16f52a6b6111c4d
+|    build date :: 2025-10-03T08:53:55Z
+|    go version :: go1.25.1 linux/amd64
 
 build options:
-     -compiler :: gc
-   CGO_ENABLED :: 1
-    CGO_CFLAGS ::
-  CGO_CPPFLAGS ::
-  CGO_CXXFLAGS ::
-   CGO_LDFLAGS ::
-        GOARCH :: amd64
-          GOOS :: linux
-       GOAMD64 :: v1
-           vcs :: git
-  vcs.revision :: 2a00b14d2ff16b79ecbb2afc54f480c2c1e28172
-      vcs.time :: 2022-04-26T00:08:11Z
-  vcs.modified :: true
+|    -buildmode :: exe
+|     -compiler :: gc
+|   CGO_ENABLED :: 1
+|    CGO_CFLAGS ::
+|  CGO_CPPFLAGS ::
+|  CGO_CXXFLAGS ::
+|   CGO_LDFLAGS ::
+|        GOARCH :: amd64
+|          GOOS :: linux
+|       GOAMD64 :: v1
+|           vcs :: git
+|  vcs.revision :: 5f5f791b792798de3f26c509f16f52a6b6111c4d
+|      vcs.time :: 2025-10-03T08:53:55Z
+|  vcs.modified :: true
 
 dependencies:
-  h1:IVj9dxSeAC0CRxjM+AYLIKbNdCzAjUnsUjAp/td7kYo= :: ariga.io/atlas :: v0.3.8-0.20220424181913-f64001131c0e
-  h1:Jlkg6X37VI/k5U02yTBB3MjKGniiBAmUGfA1TC1+dtU= :: ariga.io/entcache :: v0.0.0-20211014200019-283c566a429b
-  h1:XE5df6hfIlK/YeRxY6ynRxoMKCqn2mIOcOjId8JrQN8= :: entgo.io/ent :: v0.10.2-0.20220424193633-04e0dc936be9
-  h1:YB2fHEn0UJagG8T1rrWknE3ZQzWM06O8AMAatNn7lmo= :: github.com/agext/levenshtein :: v1.2.3
-  h1:FHtw/xuaM8AgmvDDTI9fiwoAL25Sq2cxojnZICUU8l0= :: github.com/apex/log :: v1.9.0
-  [...]
+  h1:iq6aMJDcFYP9uFrLdsiZQ2ZMmcshduyGv4Pek0MQPW0= :: github.com/alecthomas/kong :: v1.12.1
+  h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0= :: github.com/joho/godotenv :: v1.5.1
+  h1:2CQzrL6rslrsyjqLDwD11bZ5OpLBPU+g3G/r5LSfS8w= :: github.com/lmittmann/tint :: v1.1.2
+                                          unknown :: github.com/lrstanley/clix/v2 :: (devel)
+                                          unknown :: github.com/lrstanley/x/logging/handlers :: (devel)
 ```
 
-You can also use `./myproject --version-json` for a more programmatic approach
-to the above information.
+You can also use `--version-json` for a more programmatic approach to the above
+information.
 
 ## Generate Markdown
 
 When using **clix**, you can generate markdown for your commands by passing the
-flag `--generate-markdown`, which is a hidden flag. This will print the markdown
+command `generate-markdown` (hidden when using `--help`). This will print the markdown
 to stdout.
 
 ```console
-./<my-script> --generate-markdown > USAGE.md
+./<your-project> generate-markdown > USAGE.md
 ```
 
-### Example output
+This functionality is configurable using environment variables:
 
-Raw:
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
+| `CLIX_TEMPLATE_PATH` | Path to a directory containing template files to use for the markdown. These inherit from the built-in templates, so you can simply override a specific sub-template to override only a specific section of the markdown. | `<built-in templates>` |
+| `CLIX_OUTPUT_PATH` | Path to write the markdown to, or `-` to write to stdout. | `-` |
 
-```markdown
-#### Application Options
+See [example 1](./examples/simple/README.md) and [example 2](./examples/multiple-commands/README.md)
+for more examples on what this can look like.
 
-| Environment vars | Flags               | Type   | Description                          |
-| ---------------- | ------------------- | ------ | ------------------------------------ |
-| -                | `-e, --enable-http` | bool   | enable the http server               |
-| `FILE`           | `-f, --file`        | string | some file that does something        |
-| -                | `-v, --version`     | bool   | prints version information and exits |
-| `DEBUG`          | `-D, --debug`       | bool   | enables debug mode                   |
+## Migrating to v2
 
-#### Example Group
+v2 is an overhaul of the project, changing the underlying parser, logger, and more.
+The goal is to use more stdlib functionality where possible (like `log/slog`),
+making Markdown generation more flexible, and reduce external dependencies. Should
+be quite a bit less now!
 
-| Environment vars   | Flags                    | Type   | Description                           |
-| ------------------ | ------------------------ | ------ | ------------------------------------- |
-| `EXAMPLE_USERNAME` | `-u, --example.username` | string | example username [**default: admin**] |
-| `EXAMPLE_PASSWORD` | `-p, --example.password` | string | example password                      |
+Start by fetching the new version:
 
-#### Logging Options
-
-| Environment vars | Flags          | Type   | Description                                                                      |
-| ---------------- | -------------- | ------ | -------------------------------------------------------------------------------- |
-| `LOG_QUIET`      | `--log.quiet`  | bool   | disable logging to stdout (also: see levels)                                     |
-| `LOG_LEVEL`      | `--log.level`  | string | logging level [**default: info**] [**choices: debug, info, warn, error, fatal**] |
-| `LOG_JSON`       | `--log.json`   | bool   | output logs in JSON format                                                       |
-| `LOG_PRETTY`     | `--log.pretty` | bool   | output logs in a pretty colored format (cannot be easily parsed)                 |
+```console
+go get -u github.com/lrstanley/clix/v2@latest
 ```
 
-Generated:
+High-level changes:
 
----
+- Moved from [go-flags](https://github.com/jessevdk/go-flags) to
+  [kong](https://github.com/alecthomas/kong). Kong is more maintained, powerful,
+  flexible, and has less issues with parse ordering. Kong is also configured
+  through struct tags, though they are slightly different. Some examples of the
+  naming differences:
+  - `long` -> `name`
+  - `description` -> `help`
+  - `env-delim` -> `sep`
+  - `required:"true"` -> `required:""`
+  - `optional:""` for optional commands.
+  - `command` -> `cmd`
+  - See [the full list here](https://github.com/alecthomas/kong#supported-tags).
+- Kong clears all struct values before parsing, whereas go-flags does not.
+- Kong supports pre-validation hooks, resolvers for loading config files, etc.
+- Kong doesn't create an env var for flags automatically. In v1, this caused a bunch
+  of bugs, as some auto-created env vars would conflict with commonly used env vars.
+  An example of this being `--path`, which conflicts with the `PATH` env var used
+  by most operating systems.
+- struct-based flags no longer support `--flag foo --flag bar` (go-flags style),
+  and now they should be passed in as a single flag, like `--flag "foo,bar"` with
+  a struct-tag separator defined like `sep:","` (the default).
+- Version output no longer includes colors, as this required multiple dependencies.
+  I also don't think it added much value.
+- Logging, versioning, markdown, and Github runner auto-debug mode are now no longer
+  loaded as plugins when using `clix.New`, but are still loaded by default when
+  using `clix.NewWithDefaults`.
+- Logging has migrated from `github.com/apex/log` to `log/slog`. apex also had
+  pretty bad performance under high load, so you may notice a performance boost.
+- Both prettified and JSON logging fields and output look different. JSON logging
+  uses the standard `log/slog` JSON handler, with source lines added.
+- Markdown generation now no longer requires "required" flags to be set, which was
+  quite annoying before. It has moved from `--generate-markdown` (a flag) to
+  `generate-markdown` (a command).
 
-#### Application Options
-
-| Environment vars | Flags               | Type   | Description                          |
-| ---------------- | ------------------- | ------ | ------------------------------------ |
-| -                | `-e, --enable-http` | bool   | enable the http server               |
-| `FILE`           | `-f, --file`        | string | some file that does something        |
-| -                | `-v, --version`     | bool   | prints version information and exits |
-| `DEBUG`          | `-D, --debug`       | bool   | enables debug mode                   |
-
-#### Example Group
-
-| Environment vars   | Flags                    | Type   | Description                           |
-| ------------------ | ------------------------ | ------ | ------------------------------------- |
-| `EXAMPLE_USERNAME` | `-u, --example.username` | string | example username [**default: admin**] |
-| `EXAMPLE_PASSWORD` | `-p, --example.password` | string | example password                      |
-
-#### Logging Options
-
-| Environment vars | Flags          | Type   | Description                                                                      |
-| ---------------- | -------------- | ------ | -------------------------------------------------------------------------------- |
-| `LOG_QUIET`      | `--log.quiet`  | bool   | disable logging to stdout (also: see levels)                                     |
-| `LOG_LEVEL`      | `--log.level`  | string | logging level [**default: info**] [**choices: debug, info, warn, error, fatal**] |
-| `LOG_JSON`       | `--log.json`   | bool   | output logs in JSON format                                                       |
-| `LOG_PRETTY`     | `--log.pretty` | bool   | output logs in a pretty colored format (cannot be easily parsed)                 |
+See the [examples](./examples) for more details on on what your app should look like.
 
 ---
 
