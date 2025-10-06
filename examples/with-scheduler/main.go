@@ -22,7 +22,7 @@ import (
 )
 
 type Flags struct {
-	Service *ServiceConfig `prefix:"service" envprefix:"SERVICE_" group:"Service flags"`
+	Service *ServiceConfig `embed:"" prefix:"service." envprefix:"SERVICE_" group:"Service flags"`
 }
 
 var cli = clix.NewWithDefaults[Flags]()
@@ -62,7 +62,7 @@ func main() {
 }
 
 type ServiceConfig struct {
-	Interval time.Duration `default:"30s" help:"interval to run the service"`
+	Interval time.Duration `name:"interval" env:"INTERVAL" default:"30s" help:"interval to run the service"`
 }
 
 type fetchService struct {
