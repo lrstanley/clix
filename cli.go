@@ -11,7 +11,6 @@ import (
 	"sync/atomic"
 
 	"github.com/alecthomas/kong"
-	"github.com/joho/godotenv"
 )
 
 // Option is a function that can be used to configure the CLI.
@@ -38,29 +37,6 @@ func WithGithubDebug[T any]() Option[T] {
 			}
 			if runnerDebug, _ := strconv.ParseBool(os.Getenv("RUNNER_DEBUG")); runnerDebug {
 				cli.Debug = true
-			}
-			return nil
-		}))
-	}
-}
-
-// WithEnvFiles loads environment variables from ".env" style files from the
-// provided paths. If no paths are provided, it will load from the current
-// working directory.
-func WithEnvFiles[T any](paths ...string) Option[T] {
-	var initialized atomic.Bool
-	return func(cli *CLI[T]) {
-		if initialized.Load() {
-			return
-		}
-		cli.kongOptions = append(cli.kongOptions, kong.WithBeforeReset(func() error {
-			if initialized.Swap(true) {
-				return nil
-			}
-			err := godotenv.Load(paths...)
-			if err != nil && len(paths) > 0 {
-				// Only throw an error if they explicitly provided paths.
-				return err
 			}
 			return nil
 		}))

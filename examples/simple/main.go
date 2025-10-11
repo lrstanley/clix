@@ -18,7 +18,7 @@ import (
 )
 
 type Flags struct {
-	Name string `name:"name" default:"world" help:"name to print"`
+	Name string `name:"name" env:"NAME" default:"world" help:"name to print"`
 }
 
 var cli = clix.NewWithDefaults[Flags]()

@@ -5,6 +5,7 @@
 package clix
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/alecthomas/kong"
 	"github.com/lmittmann/tint"
-	"github.com/lrstanley/x/logging/handlers"
 )
 
 // WithLoggingPlugin adds the logging plugin to the CLI. This includes flags
@@ -134,7 +134,7 @@ func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool) (handler slog.Han
 			},
 		)
 	case level == -1:
-		handler = handlers.NewDiscard()
+		handler = &discard{}
 	case l.JSON:
 		handler = slog.NewJSONHandler(
 			os.Stderr,
@@ -169,4 +169,27 @@ func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool) (handler slog.Han
 	}
 
 	return handler, nil
+}
+
+// discard discards all log records.
+type discard struct{}
+
+// Enabled implements the [log/slog.Handler] interface.
+func (h *discard) Enabled(_ context.Context, _ slog.Level) bool {
+	return false
+}
+
+// Handle implements the [log/slog.Handler] interface.
+func (h *discard) Handle(_ context.Context, _ slog.Record) error {
+	return nil
+}
+
+// WithAttrs implements the [log/slog.Handler] interface.
+func (h *discard) WithAttrs(_ []slog.Attr) slog.Handler {
+	return h
+}
+
+// WithGroup implements the [log/slog.Handler] interface.
+func (h *discard) WithGroup(_ string) slog.Handler {
+	return h
 }

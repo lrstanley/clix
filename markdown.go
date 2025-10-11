@@ -15,6 +15,8 @@ import (
 	"github.com/alecthomas/kong"
 )
 
+var markdownShouldExit = true
+
 // WithMarkdownPlugin adds a hidden "generate-markdown" command that allows
 // generating markdown documentation for the CLI. To make it so this command
 // ignores any other required flags, it's invoked before kong applies additional
@@ -78,16 +80,14 @@ func (m *MarkdownCommand) BeforeReset(
 		var tmpl *template.Template
 		tmpl, err = templates.ParseFiles(files...)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to parse templates: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to parse templates: %w", err)
 		}
 
 		output, err = m.GenerateMarkdown(ctx.Model, tmpl, appInfo, version)
 	}
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to generate markdown: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to generate markdown: %w", err)
 	}
 
 	if v := os.Getenv("CLIX_OUTPUT_PATH"); v == "-" || v == "" {
@@ -99,7 +99,9 @@ func (m *MarkdownCommand) BeforeReset(
 		}
 	}
 
-	os.Exit(0)
+	if markdownShouldExit {
+		os.Exit(0)
+	}
 	return nil
 }
 
