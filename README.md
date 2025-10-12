@@ -24,7 +24,6 @@
 
 
 
-
   <a href="https://codecov.io/gh/lrstanley/clix">
     <img title="Code Coverage" src="https://img.shields.io/codecov/c/github/lrstanley/clix/master?style=flat-square">
   </a>
