@@ -45,12 +45,13 @@ func WithGithubDebug[T any]() Option[T] {
 
 // CLI is the main construct for clix, obtained via [New] or [NewWithDefaults].
 type CLI[T any] struct {
-	kong.Plugins               // Kong-specific plugins.
-	kongOptions  []kong.Option `kong:"-"`
-	version      *Version      `kong:"-"`
-	app          *AppInfo      `kong:"-"`
-	logHandler   slog.Handler  `kong:"-"`
-	logger       *slog.Logger  `kong:"-"`
+	kong.Plugins                           // Kong-specific plugins.
+	kongOptions       []kong.Option        `kong:"-"`
+	version           *Version             `kong:"-"`
+	app               *AppInfo             `kong:"-"`
+	logHandler        slog.Handler         `kong:"-"`
+	logHandlerOptions *slog.HandlerOptions `kong:"-"`
+	logger            *slog.Logger         `kong:"-"`
 
 	// Context is the context returned by kong after initial parsing.
 	Context *kong.Context `kong:"-"`
@@ -102,7 +103,7 @@ func Defaults[T any]() []Option[T] {
 	return []Option[T]{
 		WithEnvFiles[T](),
 		WithGithubDebug[T](),
-		WithLoggingPlugin[T](true),
+		WithLoggingPlugin[T](true, nil),
 		WithVersionPlugin[T](),
 		WithMarkdownPlugin[T](),
 	}

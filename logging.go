@@ -17,17 +17,34 @@ import (
 	"github.com/lmittmann/tint"
 )
 
+// WithLoggingHandlerOptions allows customizing how slog handlers are created. This
+// only applies when using the [WithLoggingPlugin] plugin. By default, the handler
+// options are set to:
+//
+//   - Level: values passed from --log.level flag.
+//   - AddSource: true
+//   - ReplaceAttr: nil
+func WithLoggingHandlerOptions[T any](opts *slog.HandlerOptions) Option[T] {
+	return func(cli *CLI[T]) {
+		cli.logHandlerOptions = opts
+	}
+}
+
 // WithLoggingPlugin adds the logging plugin to the CLI. This includes flags
-// for controlling log/slog logging levels, logging to files, JSON output, and
+// for controlling [log/slog] logging levels, logging to files, JSON output, and
 // supports setting the global slog logger. You can access the resulting
 // [log/slog.Handler] via [CLI.GetLogHandler] and the [log/slog.Logger] via
-// [CLI.GetLogger].
-func WithLoggingPlugin[T any](global bool) Option[T] {
+// [CLI.GetLogger]. opts is optional, and can also be set using [WithLoggingHandlerOptions].
+func WithLoggingPlugin[T any](global bool, opts *slog.HandlerOptions) Option[T] {
 	var initialized atomic.Bool
 
 	return func(cli *CLI[T]) {
 		if initialized.Load() {
 			return
+		}
+
+		if opts != nil {
+			cli.logHandlerOptions = opts
 		}
 
 		var flags struct {
@@ -41,7 +58,7 @@ func WithLoggingPlugin[T any](global bool) Option[T] {
 				return nil
 			}
 
-			logger, err := flags.Logging.CreateHandler(cli.Debug, global)
+			logger, err := flags.Logging.CreateHandler(cli.Debug, global, cli.logHandlerOptions)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error creating logger: %v\n", err)
 				os.Exit(1)
@@ -108,11 +125,22 @@ func (l *LoggingPlugin) GetLevel() slog.Level {
 }
 
 // CreateHandler creates a new [log/slog.Handler] with the provided configuration.
-func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool) (handler slog.Handler, err error) {
+func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool, opts *slog.HandlerOptions) (handler slog.Handler, err error) {
 	level := l.GetLevel()
 
 	if isDebug {
 		level = slog.LevelDebug
+	}
+
+	if opts == nil {
+		opts = &slog.HandlerOptions{
+			Level:     level,
+			AddSource: true,
+		}
+	}
+
+	if opts.Level == nil {
+		opts.Level = level
 	}
 
 	noColor, _ := strconv.ParseBool(os.Getenv("NO_COLOR"))
@@ -126,39 +154,22 @@ func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool) (handler slog.Han
 		}
 
 		// We can't really close the file here.
-		handler = slog.NewJSONHandler(
-			f,
-			&slog.HandlerOptions{
-				Level:     level,
-				AddSource: true,
-			},
-		)
+		handler = slog.NewJSONHandler(f, opts)
 	case level == -1:
 		handler = &discard{}
 	case l.JSON:
-		handler = slog.NewJSONHandler(
-			os.Stderr,
-			&slog.HandlerOptions{
-				Level:     level,
-				AddSource: true,
-			},
-		)
+		handler = slog.NewJSONHandler(os.Stderr, opts)
 	case noColor:
-		handler = slog.NewTextHandler(
-			os.Stderr,
-			&slog.HandlerOptions{
-				Level:     level,
-				AddSource: true,
-			},
-		)
+		handler = slog.NewTextHandler(os.Stderr, opts)
 	default:
 		handler = tint.NewHandler(
 			os.Stderr,
 			&tint.Options{
-				Level:      level,
-				AddSource:  true,
-				TimeFormat: time.RFC3339,
-				NoColor:    noColor,
+				Level:       opts.Level,
+				AddSource:   opts.AddSource,
+				TimeFormat:  time.RFC3339,
+				NoColor:     noColor,
+				ReplaceAttr: opts.ReplaceAttr,
 			},
 		)
 	}
