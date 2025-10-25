@@ -53,7 +53,7 @@ func WithLoggingPlugin[T any](global bool, opts *slog.HandlerOptions) Option[T] 
 
 		flags.Logging = &LoggingPlugin{}
 		cli.Plugins = append(cli.Plugins, &flags)
-		cli.kongOptions = append(cli.kongOptions, kong.WithAfterApply(func() error {
+		cli.kongOptions = append(cli.kongOptions, kong.WithAfterApply(func(kctx *kong.Context) error {
 			if initialized.Swap(true) || cli.logHandler != nil {
 				return nil
 			}
@@ -66,6 +66,9 @@ func WithLoggingPlugin[T any](global bool, opts *slog.HandlerOptions) Option[T] 
 
 			cli.logHandler = logger
 			cli.logger = slog.New(logger)
+
+			kctx.Bind(cli.logHandler)
+			kctx.Bind(cli.logger)
 
 			cli.logger.Debug(
 				"logger initialized",
