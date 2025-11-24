@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/alecthomas/kong"
 )
 
 func TestWithMarkdownPlugin(t *testing.T) {
@@ -22,8 +24,23 @@ func TestWithMarkdownPlugin(t *testing.T) {
 	t.Setenv("CLIX_OUTPUT_PATH", fn)
 	os.Args = []string{"clix", "generate-markdown"}
 
-	markdownShouldExit = false
-	cli := NewWithDefaults[Flags]()
+	cmd := &MarkdownCommand{
+		DisableExit: true,
+	}
+
+	cli := New(
+		WithLoggingPlugin[Flags](true, nil),
+		WithVersionPlugin[Flags](),
+		WithKongOptions[Flags](
+			kong.DynamicCommand(
+				"generate-markdown",
+				"generate markdown documentation and write to stdout",
+				"",
+				cmd,
+				"hidden",
+			),
+		),
+	)
 	if cli.Context.Error != nil {
 		t.Fatal(cli.Context.Error)
 	}

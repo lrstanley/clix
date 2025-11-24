@@ -6,6 +6,7 @@ package clix
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,8 +15,6 @@ import (
 
 	"github.com/alecthomas/kong"
 )
-
-var markdownShouldExit = true
 
 // WithMarkdownPlugin adds a hidden "generate-markdown" command that allows
 // generating markdown documentation for the CLI. To make it so this command
@@ -49,18 +48,19 @@ func WithMarkdownPlugin[T any]() Option[T] {
 	}
 }
 
-type MarkdownCommand struct{}
+type MarkdownCommand struct {
+	DisableExit bool `kong:"-"`
+}
 
 func (m *MarkdownCommand) BeforeReset(
 	ctx *kong.Kong,
-	appInfo *AppInfo,
 	version *Version,
 ) error {
 	var output string
 	var err error
 
 	if v := os.Getenv("CLIX_TEMPLATE_PATH"); v == "" {
-		output, err = m.GenerateMarkdown(ctx.Model, templates, appInfo, version)
+		output, err = m.GenerateMarkdown(ctx.Model, nil, version)
 	} else {
 		var files []string
 		err = filepath.Walk(v, func(path string, info os.FileInfo, err error) error {
@@ -83,7 +83,7 @@ func (m *MarkdownCommand) BeforeReset(
 			return fmt.Errorf("failed to parse templates: %w", err)
 		}
 
-		output, err = m.GenerateMarkdown(ctx.Model, tmpl, appInfo, version)
+		output, err = m.GenerateMarkdown(ctx.Model, tmpl, version)
 	}
 
 	if err != nil {
@@ -99,7 +99,7 @@ func (m *MarkdownCommand) BeforeReset(
 		}
 	}
 
-	if markdownShouldExit {
+	if !m.DisableExit {
 		os.Exit(0)
 	}
 	return nil
@@ -110,14 +110,17 @@ func (m *MarkdownCommand) BeforeReset(
 func (m *MarkdownCommand) GenerateMarkdown(
 	model *kong.Application,
 	tmpl *template.Template,
-	appInfo *AppInfo,
 	version *Version,
 ) (string, error) {
+	if tmpl == nil {
+		tmpl = templates
+	}
+
 	buf := bytes.NewBuffer(nil)
 
 	err := tmpl.ExecuteTemplate(buf, "main.gotmpl", map[string]any{
 		"Model":   model,
-		"AppInfo": appInfo,
+		"AppInfo": version.AppInfo,
 		"Config":  m,
 		"Version": version,
 	})
@@ -126,4 +129,11 @@ func (m *MarkdownCommand) GenerateMarkdown(
 	}
 
 	return buf.String(), nil
+}
+
+func (cli *CLI[T]) GenerateMarkdown() (string, error) {
+	if cli.Context == nil {
+		return "", errors.New("context not initialized, must parse first")
+	}
+	return (&MarkdownCommand{}).GenerateMarkdown(cli.Context.Model, nil, cli.version)
 }
