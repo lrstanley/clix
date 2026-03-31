@@ -1,0 +1,35 @@
+{{- /*
+    expects the root context to be passed in.
+*/}}
+{{- define "helpers/toc" }}
+
+## Table of Contents
+{{""}}
+{{- if (gt (len .AppInfo.Links) 0) }}
+- [Helpful Links](#helpful-links)
+{{- end }}{{- /* end: if .AppInfo.Links */}}
+- [Usage](#usage)
+{{- if gt (len .Model.Flags) 0 }}
+- [Global flags](#global-flags)
+{{- range flag_groups .Model.Flags }}
+  - [{{ .Title | title }}](#global-flags-{{ slug .Title }})
+{{- end }}{{- /* end: flag_groups */}}
+{{- end }}{{- /* end: if .Model.Flags */}}
+{{- if
+    and
+        (node_has_unhidden_children .Model.Node)
+        (gt (len (children_by_type .Model.Node "command")) 0)
+}}
+- [Commands](#commands)
+{{- range (children_by_type .Model.Node "command") }}
+{{- if .Hidden }}{{ continue }}{{ end }}
+{{- template "helpers/command/toc" (
+    dict
+        "Model" $.Model
+        "Node" .
+        "Depth" 2
+    )
+}}
+{{- end }}{{- /* end: range children_by_type */}}
+{{- end }}{{- /* end: node_has_unhidden_children . */}}
+{{- end }}{{- /* end: define "helpers/toc" */}}

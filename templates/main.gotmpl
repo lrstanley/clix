@@ -1,0 +1,62 @@
+{{- template "helpers/header" . }}
+# ⚙️ CLI Usage Documentation: {{ .Model.Name }}
+
+{{- template "helpers/app_description" . }}
+{{- template "helpers/toc" . }}
+{{- template "helpers/helpful_links" . }}
+{{- template "helpers/app_usage" . }}
+
+{{- /* Global flags */}}
+{{- if gt (len .Model.Flags) 0 }}
+{{""}}
+## Global Flags
+
+The following flags are available globally. See command sections for additional flags.
+
+{{ template "helpers/flags/table" (
+    dict
+        "Flags" (flags_by_group .Model.Flags "")
+        "Node" .Model.Node
+) }}
+
+{{- range flag_groups .Model.Flags }}
+
+{{- /*
+    github-style anchor links can't easily be guessed ahead of time as their
+    documentation doesn't explicitly state the order of operations that they
+    use to convert headers to anchor IDs. There is https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links
+    however, it's not explicit enough.
+*/}}
+<a id="global-flags-{{ slug .Title }}"></a>
+### {{ .Title | title }}
+
+{{ template "helpers/flags/table" (
+    dict
+        "Flags" (flags_by_group $.Model.Flags .Key)
+        "Node" $.Model.Node
+) }}
+{{- end }}{{- /* end: flag_groups */}}
+{{- end }}{{- /* end: Global flags */}}
+
+{{- /* Commands */}}
+{{- if
+    and
+        (node_has_unhidden_children .Model.Node)
+        (gt (len (children_by_type .Model.Node "command")) 0)
+}}
+{{""}}
+## Commands
+
+Below is a list of available commands. Refer to the full usage section for per-command help.
+
+{{- range .Model.Children }}
+{{- if .Hidden }}{{ continue }}{{ end }}
+{{ template "helpers/command" (
+    dict
+        "Model" $.Model
+        "Node" .
+        "Depth" 3
+) }}
+{{- end }}
+
+{{- end }}{{- /* end: Commands */ -}}

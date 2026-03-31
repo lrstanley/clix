@@ -5,78 +5,135 @@
 package clix
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
-	"io"
-	"strings"
+	"os"
+	"path/filepath"
+	"sync/atomic"
+	"text/template"
 
-	flags "github.com/jessevdk/go-flags"
+	"github.com/alecthomas/kong"
 )
 
-const optionHeader = "| Environment vars | Flags | Type | Description |\n| --- | --- | --- | --- |\n"
+// WithMarkdownPlugin adds a hidden "generate-markdown" command that allows
+// generating markdown documentation for the CLI. To make it so this command
+// ignores any other required flags, it's invoked before kong applies additional
+// restrictions, which means it does not support special flags. To adjust the
+// behavior, you can use environment variables:
+//
+//   - CLIX_TEMPLATE_PATH: optional path to a directory containing template files to
+//     use for the markdown.
+//   - CLIX_OUTPUT_PATH: path to write the markdown to, or '-' to write to stdout
+//     (defaults to stdout).
+func WithMarkdownPlugin[T any]() Option[T] {
+	var initialized atomic.Bool
 
-// Markdown writes generated marakdown to the provided io.Writer.
-func (cli *CLI[T]) Markdown(out io.Writer) {
-	cli.generateRecursive(out)
+	return func(cli *CLI[T]) {
+		if initialized.Load() {
+			return
+		}
+
+		cmd := &MarkdownCommand{}
+
+		cli.kongOptions = append(
+			cli.kongOptions, kong.DynamicCommand(
+				"generate-markdown",
+				"generate markdown documentation and write to stdout",
+				"",
+				cmd,
+				"hidden",
+			),
+		)
+	}
 }
 
-func (cli *CLI[T]) generateRecursive(out io.Writer, groups ...*flags.Group) {
-	// TODO: commands?
+type MarkdownCommand struct {
+	DisableExit bool `kong:"-"`
+}
 
-	parser := cli.newParser()
+func (m *MarkdownCommand) BeforeReset(
+	ctx *kong.Kong,
+	version *Version,
+) error {
+	var output string
+	var err error
 
-	if groups == nil {
-		groups = parser.Groups()
+	if v := os.Getenv("CLIX_TEMPLATE_PATH"); v == "" {
+		output, err = m.GenerateMarkdown(ctx.Model, nil, version)
+	} else {
+		var files []string
+		err = filepath.Walk(v, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				return nil
+			}
+			files = append(files, path)
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("failed to walk template directory: %w", err)
+		}
+
+		var tmpl *template.Template
+		tmpl, err = templates.ParseFiles(files...)
+		if err != nil {
+			return fmt.Errorf("failed to parse templates: %w", err)
+		}
+
+		output, err = m.GenerateMarkdown(ctx.Model, tmpl, version)
 	}
 
-	for _, group := range groups {
-		if group.LongDescription != "" {
-			fmt.Fprintf(out, "\n#### %s\n%s", group.LongDescription, optionHeader)
-		} else if group.ShortDescription != "" {
-			fmt.Fprintf(out, "\n#### %s\n%s", group.ShortDescription, optionHeader)
-		}
+	if err != nil {
+		return fmt.Errorf("failed to generate markdown: %w", err)
+	}
 
-		// print the options in this group first, then recursively continue into
-		// each sub-group.
-		options := group.Options()
-		for _, option := range options {
-			if option.Hidden {
-				continue
-			}
-
-			environment := option.EnvKeyWithNamespace()
-			if environment != "" {
-				environment = "`" + environment + "`"
-			} else {
-				environment = "-"
-			}
-
-			description := option.Description
-
-			if option.Required {
-				description += " [**required**]"
-			}
-
-			if option.Default != nil {
-				description += fmt.Sprintf(" [**default: %s**]", strings.Join(option.Default, ", "))
-			}
-
-			if option.Choices != nil {
-				description += fmt.Sprintf(" [**choices: %s**]", strings.Join(option.Choices, ", "))
-			}
-
-			description = strings.ReplaceAll(description, "|", "\\|")
-
-			_type := fmt.Sprintf("%T", option.Value())
-			if strings.Contains(strings.ToLower(_type), "func") {
-				_type = "-"
-			}
-
-			fmt.Fprintf(out, "| %s | `%s` | %s | %s |\n", environment, option.String(), _type, description)
-		}
-
-		children := group.Groups()
-		if len(children) > 0 {
-			cli.generateRecursive(out, children...)
+	if v := os.Getenv("CLIX_OUTPUT_PATH"); v == "-" || v == "" {
+		fmt.Fprint(os.Stdout, output) //nolint:forbidigo
+	} else {
+		err = os.WriteFile(v, []byte(output), 0o600)
+		if err != nil {
+			return err
 		}
 	}
+
+	if !m.DisableExit {
+		os.Exit(0)
+	}
+	return nil
+}
+
+// GenerateMarkdown generates the markdown documentation for the CLI, returning the
+// markdown as a string.
+func (m *MarkdownCommand) GenerateMarkdown(
+	model *kong.Application,
+	tmpl *template.Template,
+	version *Version,
+) (string, error) {
+	if tmpl == nil {
+		tmpl = templates
+	}
+
+	buf := bytes.NewBuffer(nil)
+
+	err := tmpl.ExecuteTemplate(buf, "main.gotmpl", map[string]any{
+		"Model":   model,
+		"AppInfo": version.AppInfo,
+		"Config":  m,
+		"Version": version,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
+}
+
+func (cli *CLI[T]) GenerateMarkdown() (string, error) {
+	if cli.Context == nil {
+		return "", errors.New("context not initialized, must parse first")
+	}
+	return (&MarkdownCommand{}).GenerateMarkdown(cli.Context.Model, nil, cli.version)
 }

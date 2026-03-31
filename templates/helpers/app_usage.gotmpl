@@ -1,0 +1,17 @@
+{{- /*
+    Renders basic app usage.
+    expects the root context to be passed in.
+*/}}
+{{- define "helpers/app_usage" }}
+{{""}}
+## Usage
+
+```console
+$ {{ .Model.Name }}{{ .Model.Summary }}
+```
+
+{{- if .Model.DefaultCmd }}
+
+The default command when invoked without an explicit command is [{{ .Model.DefaultCmd.Path }}](#command-{{ slug .Model.DefaultCmd.Path }}).
+{{- end }}
+{{- end }}{{- /* end: define "helpers/app_usage" */}}
