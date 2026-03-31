@@ -7,11 +7,7 @@ dist
 *.test
 *.prof
 *.conf
-*.yml
-*.yaml
-!/.github/**
-vendor/*
 bin
 **/.env
 examples/kitchensink
-go.work
+go.work*

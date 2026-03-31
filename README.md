@@ -86,8 +86,8 @@ tags, unmarshalling config files, DI, and more. Includes builtin plugins for:
   - Printing dependencies and build flags.
   - Embedding useful links (support, repo, homepage, etc) in both version
     output, and help output.
-- Markdown (generate markdown from the CLI's help information). See [example 1](./examples/simple/README.md)
-  and [example 2](./examples/multiple-commands/README.md). See [below](#generate-markdown)
+- Markdown (generate markdown from the CLI's help information). See [example 1](./_examples/simple/README.md)
+  and [example 2](./_examples/multiple-commands/README.md). See [below](#generate-markdown)
   for more details.
 - Built-in `--debug` flag.
 - [godotenv](github.com/joho/godotenv) integration to auto-load environment variables
@@ -98,12 +98,9 @@ default configuration that should work for most basic apps.
 
 ## :gear: Usage
 
-<!-- template:begin:goget -->
-<!-- do not edit anything in this "template" block, its auto-generated -->
 ```console
 go get -u github.com/lrstanley/clix/v2@latest
 ```
-<!-- template:end:goget -->
 
 Example:
 
@@ -213,7 +210,7 @@ This functionality is configurable using environment variables:
 | `CLIX_TEMPLATE_PATH` | Path to a directory containing template files to use for the markdown. These inherit from the built-in templates, so you can simply override a specific sub-template to override only a specific section of the markdown. | `<built-in templates>` |
 | `CLIX_OUTPUT_PATH` | Path to write the markdown to, or `-` to write to stdout. | `-` |
 
-See [example 1](./examples/simple/README.md) and [example 2](./examples/multiple-commands/README.md)
+See [example 1](./_examples/simple/README.md) and [example 2](./_examples/multiple-commands/README.md)
 for more examples on what this can look like.
 
 ## Migrating to v2
@@ -265,10 +262,10 @@ High-level changes:
   quite annoying before. It has moved from `--generate-markdown` (a flag) to
   `generate-markdown` (a command).
 - Runner functionality has moved to an external package, [github.com/lrstanley/x/scheduler](https://pkg.go.dev/github.com/lrstanley/x/scheduler). It now supports crontab-style intervals,
-  and a builder-style interface for creating jobs. See [examples/with-scheduler](./examples/with-scheduler)
+  and a builder-style interface for creating jobs. See [examples/with-scheduler](./_examples/with-scheduler)
   for an example.
 
-See the [examples](./examples) for more details on on what your app should look like.
+See the [examples](./_examples) for more details on on what your app should look like.
 
 ---
 

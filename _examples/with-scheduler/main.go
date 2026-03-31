@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/lrstanley/clix/v2"
-	"github.com/lrstanley/x/scheduler"
+	"github.com/lrstanley/x/sync/scheduler"
 )
 
 type Flags struct {

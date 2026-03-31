@@ -168,11 +168,21 @@ func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool, opts *slog.Handle
 		handler = tint.NewHandler(
 			os.Stderr,
 			&tint.Options{
-				Level:       opts.Level,
-				AddSource:   opts.AddSource,
-				TimeFormat:  time.RFC3339,
-				NoColor:     noColor,
-				ReplaceAttr: opts.ReplaceAttr,
+				Level:      opts.Level,
+				AddSource:  opts.AddSource,
+				TimeFormat: time.TimeOnly,
+				NoColor:    noColor,
+				ReplaceAttr: func(groups []string, attr slog.Attr) slog.Attr {
+					if attr.Value.Kind() == slog.KindAny {
+						if _, ok := attr.Value.Any().(error); ok {
+							attr = tint.Attr(9, attr)
+						}
+					}
+					if opts.ReplaceAttr != nil {
+						return opts.ReplaceAttr(groups, attr)
+					}
+					return attr
+				},
 			},
 		)
 	}

@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+tasks:
+  default:
+    desc: license headers, generate, format, vet, and tests (same as all)
+    cmds:
+      - task: all
+
+  license:
+    desc: apply license headers via liam.sh script
+    cmds:
+      - curl -sL https://liam.sh/-/gh/g/license-header.sh | bash -s
+
+  up:
+    desc: update module dependencies in root and nested modules
+    cmds:
+      - for: [".", "_examples"]
+        cmd: cd {{ .ITEM | quote }} && go get -u ./... && go get -u -t ./... && go mod tidy
+
+  generate:
+    desc: license headers, go generate, and example README markdown
+    deps: [license]
+    cmds:
+      - go generate -x ./...
+      - for:
+          - "_examples/simple"
+          - "_examples/multiple-commands"
+          - "_examples/with-scheduler"
+        cmd: cd {{ .ITEM | quote }} && go run . generate-markdown > README.md
+
+  test:
+    desc: format, vet, and run tests
+    cmds:
+      - gofmt -e -s -w .
+      - go vet .
+      - go test -v ./...
+
+  all:
+    desc: generate then test
+    cmds:
+      - task: generate
+      - task: test
