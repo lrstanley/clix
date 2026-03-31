@@ -24,15 +24,16 @@
 
 
 
+
   <a href="https://codecov.io/gh/lrstanley/clix">
     <img title="Code Coverage" src="https://img.shields.io/codecov/c/github/lrstanley/clix/master?style=flat-square">
   </a>
 
-  <a href="https://pkg.go.dev/github.com/lrstanley/clix">
-    <img title="Go Documentation" src="https://pkg.go.dev/badge/github.com/lrstanley/clix?style=flat-square">
+  <a href="https://pkg.go.dev/github.com/lrstanley/clix/v2">
+    <img title="Go Documentation" src="https://pkg.go.dev/badge/github.com/lrstanley/clix/v2?style=flat-square">
   </a>
-  <a href="https://goreportcard.com/report/github.com/lrstanley/clix">
-    <img title="Go Report Card" src="https://goreportcard.com/badge/github.com/lrstanley/clix?style=flat-square">
+  <a href="https://goreportcard.com/report/github.com/lrstanley/clix/v2">
+    <img title="Go Report Card" src="https://goreportcard.com/badge/github.com/lrstanley/clix/v2?style=flat-square">
   </a>
 </p>
 <p align="center">
@@ -60,10 +61,7 @@
   - [Usage](#gear-usage)
   - [Example help output](#example-help-output)
   - [Generate Markdown](#generate-markdown)
-    - [Example output](#example-output)
-      - [Application Options](#application-options)
-      - [Example Group](#example-group)
-      - [Logging Options](#logging-options)
+  - [Migrating to v2](#migrating-to-v2)
   - [Support &amp; Assistance](#raising_hand_man-support--assistance)
   - [Contributing](#handshake-contributing)
   - [License](#balance_scale-license)
