@@ -5,7 +5,6 @@
 package clix
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -159,7 +158,7 @@ func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool, opts *slog.Handle
 		// We can't really close the file here.
 		handler = slog.NewJSONHandler(f, opts)
 	case level == -1:
-		handler = &discard{}
+		handler = slog.DiscardHandler
 	case l.JSON:
 		handler = slog.NewJSONHandler(os.Stderr, opts)
 	case noColor:
@@ -193,27 +192,4 @@ func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool, opts *slog.Handle
 	}
 
 	return handler, nil
-}
-
-// discard discards all log records.
-type discard struct{}
-
-// Enabled implements the [log/slog.Handler] interface.
-func (h *discard) Enabled(_ context.Context, _ slog.Level) bool {
-	return false
-}
-
-// Handle implements the [log/slog.Handler] interface.
-func (h *discard) Handle(_ context.Context, _ slog.Record) error {
-	return nil
-}
-
-// WithAttrs implements the [log/slog.Handler] interface.
-func (h *discard) WithAttrs(_ []slog.Attr) slog.Handler {
-	return h
-}
-
-// WithGroup implements the [log/slog.Handler] interface.
-func (h *discard) WithGroup(_ string) slog.Handler {
-	return h
 }
