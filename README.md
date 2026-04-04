@@ -87,8 +87,7 @@ tags, unmarshalling config files, DI, and more. Includes builtin plugins for:
   and [example 2](./_examples/multiple-commands/README.md). See [below](#generate-markdown)
   for more details.
 - Built-in `--debug` flag.
-- [godotenv](github.com/joho/godotenv) integration to auto-load environment variables
-  from `.env` files, before parsing flags.
+- Parsing and loading of dotenv files (`.env`), with dynamic variable expansion.
 
 **clix** is configurable, so all of the above can be turned on/off, with a reasonable
 default configuration that should work for most basic apps.
