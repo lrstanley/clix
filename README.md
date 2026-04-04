@@ -3,7 +3,7 @@
   "nodescription": true
 }
 -->
-![logo](https://liam.sh/-/gh/svg/lrstanley/clix?icon=material-symbols%3Aterminal&icon.height=100&layout=left&icon.color=rgba%2839%2C+132%2C+85%2C+1%29&font=1.2)
+![banner](https://github.com/user-attachments/assets/abd3cf2c-ff62-4bdd-8158-c331d67bed92)
 
 <!-- template:begin:header -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
