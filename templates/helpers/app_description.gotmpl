@@ -2,8 +2,14 @@
     expects the root context to be passed in.
 */}}
 {{- define "helpers/app_description" }}
-{{- $desc := sanitize_md (
+{{- $desc := trim (
     or
+        (
+            bool_or
+                (not (contains_fold .AppInfo.Description ":: unknown"))
+                .AppInfo.Description
+                false
+        )
         (
             bool_or
                 (not (contains_fold .Model.Detail ":: unknown"))
@@ -16,17 +22,13 @@
                 .Model.Help
                 false
         )
-        (
-            bool_or
-                (not (contains_fold .AppInfo.Description ":: unknown"))
-                .AppInfo.Description
-                false
-        )
         ""
 ) }}
 {{- if $desc }}
 
-> {{ $desc }}
+```
+{{ $desc }}
+```
 
 ---
 {{- end }}

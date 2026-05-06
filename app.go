@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"strings"
 	"sync/atomic"
-
-	"github.com/alecthomas/kong"
 )
 
 // WithAppInfo adds the provided application information to the CLI.
@@ -19,15 +17,6 @@ func WithAppInfo[T any](app AppInfo) Option[T] {
 		if initialized.Swap(true) {
 			return
 		}
-
-		if app.Name != "" {
-			cli.kongOptions = append(cli.kongOptions, kong.Name(app.Name))
-		}
-
-		if app.Description != "" {
-			cli.kongOptions = append(cli.kongOptions, kong.Description(app.Description))
-		}
-
 		cli.app.Inherit(app)
 	}
 }

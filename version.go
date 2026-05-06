@@ -140,10 +140,15 @@ func (v *Version) GetSetting(key, defaultValue string) string {
 func (v *Version) stringBase() string {
 	w := &bytes.Buffer{}
 
-	fmt.Fprintf(w, "%s :: %s\n", v.AppInfo.Name, v.AppInfo.Version)
-	fmt.Fprintf(w, "|  build commit :: %s\n", v.AppInfo.Commit)
-	fmt.Fprintf(w, "|    build date :: %s\n", v.AppInfo.Date)
-	fmt.Fprintf(w, "|    go version :: %s %s/%s\n", v.GoVersion, v.OS, v.Arch)
+	if v.AppInfo.Description != "" {
+		fmt.Fprintf(w, "%s\n\n", v.AppInfo.Description)
+		fmt.Fprintf(w, "       version: %s\n", v.AppInfo.Version)
+	} else {
+		fmt.Fprintf(w, "%s :: %s\n", v.AppInfo.Name, v.AppInfo.Version)
+	}
+	fmt.Fprintf(w, "  build commit: %s\n", v.AppInfo.Commit)
+	fmt.Fprintf(w, "    build date: %s\n", v.AppInfo.Date)
+	fmt.Fprintf(w, "    go version: %s %s/%s\n", v.GoVersion, v.OS, v.Arch)
 
 	if len(v.AppInfo.Links) > 0 {
 		var longest int
@@ -156,8 +161,8 @@ func (v *Version) stringBase() string {
 		fmt.Fprintf(w, "\nhelpful links:\n")
 		for _, l := range v.AppInfo.Links {
 			fmt.Fprintf(
-				w, "|  %s%s :: %s\n",
-				strings.Repeat(" ", longest-len(l.Name)),
+				w, "%s%s :: %s\n",
+				strings.Repeat(" ", longest-len(l.Name)+1),
 				l.Name, l.URL,
 			)
 		}
@@ -267,11 +272,6 @@ func GetVersionInfo(app *AppInfo) *Version {
 
 	if v.AppInfo.Date == "" {
 		v.AppInfo.Date = "unknown"
-	}
-
-	if v.AppInfo.Description == "" {
-		// TODO: https://github.com/alecthomas/kong/issues/376
-		v.AppInfo.Description = strings.ReplaceAll(v.stringBase(), "|", "")
 	}
 
 	return v

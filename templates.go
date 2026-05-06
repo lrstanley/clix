@@ -153,7 +153,7 @@ var (
 		"trim":       strings.TrimSpace,
 		"upper":      strings.ToUpper,
 		"lower":      strings.ToLower,
-		"title":      strings.Title,
+		"title":      strings.Title, //nolint:deprecated
 		// Switch order so that "foo" | repeat 5
 		"repeat": func(count int, str string) string { return strings.Repeat(str, count) },
 		"dict": func(args ...any) map[string]any {

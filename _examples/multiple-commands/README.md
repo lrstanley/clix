@@ -5,7 +5,9 @@
 -->
 # ⚙️ CLI Usage Documentation: simple-app
 
-> a simple app that supports multiple commands
+```
+a simple app that supports multiple commands
+```
 
 ---
 

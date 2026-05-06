@@ -116,6 +116,11 @@ func (m *MarkdownCommand) GenerateMarkdown(
 		tmpl = templates
 	}
 
+	// Prevent our auto-generated app description from being used (as it contains
+	// versions, links, etc) that may result in diffs depending on where its ran
+	// from.
+	model.Help = version.AppInfo.Description
+
 	buf := bytes.NewBuffer(nil)
 
 	err := tmpl.ExecuteTemplate(buf, "main.gotmpl", map[string]any{

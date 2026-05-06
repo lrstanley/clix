@@ -81,7 +81,6 @@ func New[T any](options ...Option[T]) *CLI[T] {
 			FlagsLast: true,
 		}),
 		kong.UsageOnError(),
-		kong.Description(cli.app.Description),
 		kong.Bind(cli.version),
 		kong.Bind(cli.app),
 		kong.Bind(cli),
@@ -93,6 +92,12 @@ func New[T any](options ...Option[T]) *CLI[T] {
 		}
 		opt(cli)
 	}
+
+	if cli.app.Name != "" && !cli.app.IsModuleName() {
+		cli.kongOptions = append(cli.kongOptions, kong.Name(cli.app.Name))
+	}
+
+	cli.kongOptions = append(cli.kongOptions, kong.Description(cli.version.stringBase()))
 
 	cli.Context = kong.Parse(cli, cli.kongOptions...)
 	return cli
