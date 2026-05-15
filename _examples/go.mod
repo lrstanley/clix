@@ -7,7 +7,7 @@ replace github.com/lrstanley/clix/v2 => ../
 require (
 	github.com/alecthomas/kong v1.15.0
 	github.com/lrstanley/clix/v2 v2.0.0
-	github.com/lrstanley/x/sync v0.0.0-20260505072934-f1321f6fa876
+	github.com/lrstanley/x/sync v0.0.0-20260514072400-85ffc850d28d
 )
 
 require github.com/lmittmann/tint v1.1.3 // indirect
