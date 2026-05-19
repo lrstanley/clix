@@ -179,9 +179,14 @@ func (cli *CLI[T]) ParseWithInit(initFn func() error, options ...Options) error 
 
 	args, err := cli.Parser.Parse()
 	if err != nil {
-		flagErr := &flags.Error{}
-		if errors.As(err, &flagErr) {
-			os.Exit(0)
+		if e, ok := errors.AsType[*flags.Error](err); ok {
+			switch e.Type {
+			case flags.ErrTag, flags.ErrInvalidTag:
+				fmt.Fprintf(os.Stderr, "clix: error parsing flags: %v", err)
+				os.Exit(1)
+			default:
+				os.Exit(0)
+			}
 		}
 		os.Exit(1)
 	}
