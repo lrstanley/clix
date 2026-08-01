@@ -4,5 +4,5 @@ go 1.25.1
 
 require (
 	github.com/alecthomas/kong v1.15.0
-	github.com/lmittmann/tint v1.1.3
+	github.com/lmittmann/tint v1.2.0
 )
