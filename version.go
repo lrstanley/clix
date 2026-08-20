@@ -6,7 +6,8 @@ package clix
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -50,11 +51,10 @@ func (v VersionFlag) BeforeReset(ver *Version) error {
 type VersionJSONFlag bool
 
 func (v VersionJSONFlag) BeforeReset(ver *Version) error {
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "    ")
-	if err := enc.Encode(ver); err != nil {
+	if err := json.MarshalWrite(os.Stdout, ver, jsontext.WithIndent("    ")); err != nil {
 		panic(err)
 	}
+	fmt.Fprintln(os.Stdout)
 	os.Exit(0)
 	return nil
 }

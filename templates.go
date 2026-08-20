@@ -265,7 +265,7 @@ var (
 			var buf strings.Builder
 			buf.WriteString("<ul>")
 			for _, item := range items {
-				buf.WriteString(fmt.Sprintf("<li>%s</li>", item))
+				fmt.Fprintf(&buf, "<li>%s</li>", item)
 			}
 			buf.WriteString("</ul>")
 			return buf.String()

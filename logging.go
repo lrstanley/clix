@@ -164,7 +164,7 @@ func (l *LoggingPlugin) CreateHandler(isDebug, setGlobal bool, opts *slog.Handle
 	case noColor:
 		handler = slog.NewTextHandler(os.Stderr, opts)
 	default:
-		handler = tint.NewHandler(
+		handler = tint.NewTextHandler(
 			os.Stderr,
 			&tint.Options{
 				Level:      opts.Level,
