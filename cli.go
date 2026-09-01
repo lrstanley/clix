@@ -61,7 +61,7 @@ type CLI[T any] struct {
 
 	// Debug can be used to enable/disable debugging as a global flag. Also
 	// sets the log level to debug.
-	Debug bool `short:"D" name:"debug" help:"enables debug mode"`
+	Debug bool `short:"D" name:"debug" env:"DEBUG" help:"enables debug mode"`
 }
 
 // New executes the cli parser, with the provided options (no defaults are

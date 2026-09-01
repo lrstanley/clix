@@ -60,6 +60,7 @@ func TestWithMarkdownPlugin(t *testing.T) {
 		"-v, --version",
 		"--version-json",
 		"-D, --debug",
+		"DEBUG",
 		"-f, --foo=",
 		"FOO_ENV_VAR",
 		"--log.level=",
