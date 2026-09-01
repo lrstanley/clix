@@ -8,5 +8,7 @@ github.com/hexops/gotextdiff v1.0.3 h1:gitA9+qJrrTCsiCl7+kh75nPqQt1cx4ZkudSTLoUq
 github.com/hexops/gotextdiff v1.0.3/go.mod h1:pSWU5MAI3yDq+fZBTazCSJysOMbxWL1BSow5/V2vxeg=
 github.com/lmittmann/tint v1.2.0 h1:AogHRHy8HUJUnNJBHJlYa+fR4YY8mko2cnCp67xn9JY=
 github.com/lmittmann/tint v1.2.0/go.mod h1:HIS3gSy7qNwGCj+5oRjAutErFBl4BzdQP6cJZ0NfMwE=
-github.com/lrstanley/x/sync v0.0.0-20260529065950-23013a958022 h1:wI/2E/WzAb3BOJHe8xxIIcrBo7sKe8SvC13fjLBXuic=
-github.com/lrstanley/x/sync v0.0.0-20260529065950-23013a958022/go.mod h1:q71F0fHcGckHKcLWPLgD/monxNSFE+2bRJcMAiq7fGM=
+github.com/lrstanley/clix/v2 v2.0.2 h1:sQaLovE+w/odIlsZIDZfFKN9MPSp7paDl++yYEMQIuo=
+github.com/lrstanley/clix/v2 v2.0.2/go.mod h1:KVj+N4DMxur27jN5Jf7Y6M93Zugo2BnkG/9q+PD/LSk=
+github.com/lrstanley/x/sync v0.0.0-20260825190559-0b57a39177d1 h1:/E6MWmZbRM65D6f+SGjwacWPqFu/Lgw9KvqnHKrDd7A=
+github.com/lrstanley/x/sync v0.0.0-20260825190559-0b57a39177d1/go.mod h1:ZKZnCxzOGaux/A2ihsAgFO6rcTRjirKZRolPLUwx3jY=
