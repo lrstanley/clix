@@ -6,7 +6,7 @@ replace github.com/lrstanley/clix/v2 => ../
 
 require (
 	github.com/alecthomas/kong v1.16.1
-	github.com/lrstanley/clix/v2 v2.0.2
+	github.com/lrstanley/clix/v2 v2.0.3
 	github.com/lrstanley/x/sync v0.0.0-20260529065950-23013a958022
 )
 
