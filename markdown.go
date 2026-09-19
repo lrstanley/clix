@@ -63,7 +63,7 @@ func (m *MarkdownCommand) BeforeReset(
 		output, err = m.GenerateMarkdown(ctx.Model, nil, version)
 	} else {
 		var files []string
-		err = filepath.Walk(v, func(path string, info os.FileInfo, err error) error {
+		err = filepath.Walk(v, func(path string, info os.FileInfo, err error) error { //nolint:gosec // path is explicitly configured by the caller
 			if err != nil {
 				return err
 			}
@@ -93,7 +93,7 @@ func (m *MarkdownCommand) BeforeReset(
 	if v := os.Getenv("CLIX_OUTPUT_PATH"); v == "-" || v == "" {
 		fmt.Fprint(os.Stdout, output) //nolint:forbidigo
 	} else {
-		err = os.WriteFile(v, []byte(output), 0o600)
+		err = os.WriteFile(v, []byte(output), 0o600) //nolint:gosec // path is explicitly configured by the caller
 		if err != nil {
 			return err
 		}
