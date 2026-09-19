@@ -6,24 +6,34 @@ package clix
 
 import (
 	"os"
+	"strconv"
 	"sync/atomic"
 
 	"github.com/alecthomas/kong"
 	"github.com/lrstanley/clix/v2/internal/dotenv"
 )
 
+type envFilesPlugin struct {
+	NoDotEnv bool `name:"no-dot-env" env:"NO_DOT_ENV" help:"disables loading .env files"`
+}
+
 // WithEnvFiles loads environment variables from ".env" style files from the
 // provided paths. If no paths are provided, it will load from the current
 // working directory as ".env", but will not return an error if the file has
-// access issues/doesn't exist.
+// access issues/doesn't exist. Loading can be disabled with --no-dot-env or
+// NO_DOT_ENV=true.
 func WithEnvFiles[T any](paths ...string) Option[T] {
 	var initialized atomic.Bool
 	return func(cli *CLI[T]) {
 		if initialized.Load() {
 			return
 		}
-		cli.kongOptions = append(cli.kongOptions, kong.WithBeforeReset(func() error {
+		cli.Plugins = append(cli.Plugins, &envFilesPlugin{})
+		cli.kongOptions = append(cli.kongOptions, kong.WithBeforeReset(func(ctx *kong.Context) error {
 			if initialized.Swap(true) {
+				return nil
+			}
+			if noDotEnvRequested(ctx) {
 				return nil
 			}
 			var vars map[string]string
@@ -52,4 +62,15 @@ func WithEnvFiles[T any](paths ...string) Option[T] {
 			return nil
 		}))
 	}
+}
+
+func noDotEnvRequested(ctx *kong.Context) bool {
+	for _, path := range ctx.Path {
+		if path.Flag != nil && path.Flag.Name == "no-dot-env" {
+			return ctx.Value(path).Bool()
+		}
+	}
+
+	disabled, err := strconv.ParseBool(os.Getenv("NO_DOT_ENV"))
+	return err == nil && disabled
 }
