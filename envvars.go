@@ -20,7 +20,9 @@ type envFilesPlugin struct {
 // WithEnvFiles loads environment variables from ".env" style files from the
 // provided paths. If no paths are provided, it will load from the current
 // working directory as ".env", but will not return an error if the file has
-// access issues/doesn't exist. Loading can be disabled with --no-dot-env or
+// access issues/doesn't exist. For variables defined in multiple sources, the
+// precedence is: command-line flags, existing environment variables, then
+// values from the env files. Loading can be disabled with --no-dot-env or
 // NO_DOT_ENV=true.
 func WithEnvFiles[T any](paths ...string) Option[T] {
 	var initialized atomic.Bool
@@ -54,6 +56,9 @@ func WithEnvFiles[T any](paths ...string) Option[T] {
 				}
 			}
 			for k, v := range vars {
+				if _, ok := os.LookupEnv(k); ok {
+					continue
+				}
 				err = os.Setenv(k, v)
 				if err != nil {
 					return err

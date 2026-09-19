@@ -12,25 +12,33 @@ import (
 
 func TestWithEnvFilesNoDotEnv(t *testing.T) {
 	const (
-		envKey   = "CLIX_TEST_ENV_FILE_VALUE"
-		envValue = "from-env-file"
+		envKey      = "CLIX_TEST_ENV_FILE_VALUE"
+		envValue    = "from-env-file"
+		loadedKey   = "CLIX_TEST_ENV_FILE_ONLY"
+		loadedValue = "loaded-from-env-file"
 	)
 
 	envFile := filepath.Join(t.TempDir(), ".env")
-	if err := os.WriteFile(envFile, []byte(envKey+"="+envValue+"\n"), 0o600); err != nil {
+	if err := os.WriteFile(
+		envFile,
+		[]byte(envKey+"="+envValue+"\n"+loadedKey+"="+loadedValue+"\n"),
+		0o600,
+	); err != nil {
 		t.Fatal(err)
 	}
 
 	tests := []struct {
-		name      string
-		args      []string
-		noDotEnv  string
-		wantValue string
+		name       string
+		args       []string
+		noDotEnv   string
+		wantValue  string
+		wantLoaded bool
 	}{
 		{
-			name:      "loads env file",
-			noDotEnv:  "false",
-			wantValue: envValue,
+			name:       "loads env file",
+			noDotEnv:   "false",
+			wantValue:  "before-env-file",
+			wantLoaded: true,
 		},
 		{
 			name:      "flag disables env file",
@@ -44,10 +52,11 @@ func TestWithEnvFilesNoDotEnv(t *testing.T) {
 			wantValue: "before-env-file",
 		},
 		{
-			name:      "flag overrides env",
-			args:      []string{"--no-dot-env=false"},
-			noDotEnv:  "true",
-			wantValue: envValue,
+			name:       "flag overrides env",
+			args:       []string{"--no-dot-env=false"},
+			noDotEnv:   "true",
+			wantValue:  "before-env-file",
+			wantLoaded: true,
 		},
 	}
 
@@ -59,6 +68,14 @@ func TestWithEnvFilesNoDotEnv(t *testing.T) {
 
 			t.Setenv("NO_DOT_ENV", tt.noDotEnv)
 			t.Setenv(envKey, "before-env-file")
+			if err := os.Unsetenv(loadedKey); err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() {
+				if err := os.Unsetenv(loadedKey); err != nil {
+					t.Errorf("restore %s: %v", loadedKey, err)
+				}
+			})
 			t.Chdir(filepath.Dir(envFile))
 
 			New(WithEnvFiles[struct{}]())
@@ -69,6 +86,14 @@ func TestWithEnvFilesNoDotEnv(t *testing.T) {
 			}
 			if value != tt.wantValue {
 				t.Fatalf("expected env file value %q, got %q", tt.wantValue, value)
+			}
+
+			loaded, ok := os.LookupEnv(loadedKey)
+			if tt.wantLoaded && (!ok || loaded != loadedValue) {
+				t.Fatalf("expected %s=%q, got %q", loadedKey, loadedValue, loaded)
+			}
+			if !tt.wantLoaded && ok {
+				t.Fatalf("expected %s to remain unset, got %q", loadedKey, loaded)
 			}
 		})
 	}
