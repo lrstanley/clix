@@ -22,12 +22,13 @@ $ with-scheduler <command> [flags]
 
 The following flags are available globally. See command sections for additional flags.
 
-| Flag(s)                                                                   | Env vars | Type     | Help                                                |
-|---------------------------------------------------------------------------|----------|----------|-----------------------------------------------------|
-| <a id="flag-help"></a>[🔗](#flag-help) `-h, --help`                     | -        | **bool** | Show context\-sensitive help.                       |
-| <a id="flag-version"></a>[🔗](#flag-version) `-v, --version`            | -        | **bool** | prints version information and exits                |
-| <a id="flag-version-json"></a>[🔗](#flag-version-json) `--version-json` | -        | **bool** | prints version information in JSON format and exits |
-| <a id="flag-debug"></a>[🔗](#flag-debug) `-D, --debug`                  | `DEBUG`  | **bool** | enables debug mode                                  |
+| Flag(s)                                                                   | Env vars     | Type     | Help                                                |
+|---------------------------------------------------------------------------|--------------|----------|-----------------------------------------------------|
+| <a id="flag-help"></a>[🔗](#flag-help) `-h, --help`                     | -            | **bool** | Show context\-sensitive help.                       |
+| <a id="flag-no-dot-env"></a>[🔗](#flag-no-dot-env) `--no-dot-env`       | `NO_DOT_ENV` | **bool** | disables loading .env files                         |
+| <a id="flag-version"></a>[🔗](#flag-version) `-v, --version`            | -            | **bool** | prints version information and exits                |
+| <a id="flag-version-json"></a>[🔗](#flag-version-json) `--version-json` | -            | **bool** | prints version information in JSON format and exits |
+| <a id="flag-debug"></a>[🔗](#flag-debug) `-D, --debug`                  | `DEBUG`      | **bool** | enables debug mode                                  |
 
 <a id="global-flags-logging-flags"></a>
 ### Logging Flags

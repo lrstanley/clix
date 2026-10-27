@@ -26,6 +26,7 @@ tasks:
           - "_examples/simple"
           - "_examples/multiple-commands"
           - "_examples/with-scheduler"
+          - "_examples/with-execute"
         cmd: cd {{ .ITEM | quote }} && go run . generate-markdown > README.md
 
   test:

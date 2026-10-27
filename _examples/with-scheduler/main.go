@@ -8,13 +8,13 @@
 // application.
 //
 // This example also shows how to break up your flags into different groups,
-// which could be pulled from other sub-packages.
+// which could be pulled from other sub-packages, and how to use [clix.CLI.Execute]
+// to log errors and exit cleanly.
 package main
 
 import (
 	"context"
 	"log/slog"
-	"os"
 	"time"
 
 	"github.com/lrstanley/clix/v2"
@@ -28,17 +28,17 @@ type Flags struct {
 var cli = clix.NewWithDefaults[Flags]()
 
 func main() {
-	logger := cli.GetLogger()
+	cli.Execute(run)
+}
 
-	ctx := context.TODO()
-
+func run(ctx context.Context, logger *slog.Logger) error {
 	// This is an example of using the github.com/lrstanley/x/scheduler package
 	// to run a set of jobs. It's not technically tied to clix, but it pairs well
 	// with it. You can use the scheduler for cron/interval based jobs, or
 	// background jobs that you want to always run (and if they error, exit
 	// the application). These jobs also listen to signals like SIGINT, SIGTERM,
 	// etc. and will stop all jobs and exit the application when they are received.
-	err := scheduler.Run(
+	return scheduler.Run(
 		ctx,
 		// Interval based cron job using the [scheduler.Job] interface.
 		scheduler.NewCron("fetch-svc", &fetchService{logger: logger}).
@@ -55,10 +55,6 @@ func main() {
 		// in the background).
 		scheduler.JobFunc(longRunningJob),
 	)
-	if err != nil {
-		logger.Error("error running services", "error", err)
-		os.Exit(1)
-	}
 }
 
 type ServiceConfig struct {
