@@ -31,7 +31,7 @@ func main() {
 	cli.Execute(run)
 }
 
-func run(ctx context.Context, logger *slog.Logger) error {
+func run(ctx context.Context, _ *clix.CLI[Flags], logger *slog.Logger) error {
 	// This is an example of using the github.com/lrstanley/x/scheduler package
 	// to run a set of jobs. It's not technically tied to clix, but it pairs well
 	// with it. You can use the scheduler for cron/interval based jobs, or

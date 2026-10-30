@@ -41,7 +41,7 @@ func main() {
 	cli.Execute(run)
 }
 
-func run(ctx context.Context, logger *slog.Logger) error {
+func run(ctx context.Context, cli *clix.CLI[Flags], logger *slog.Logger) error {
 	conn, err := openConnection(ctx, logger)
 	if err != nil {
 		return fmt.Errorf("failed to open connection: %w", err)

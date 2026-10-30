@@ -44,24 +44,24 @@ func newExecuteTestCLI(t *testing.T) (cli *CLI[struct{}], code *int, logs *strin
 func TestExecute(t *testing.T) {
 	tests := []struct {
 		name     string
-		fn       func(ctx context.Context, logger *slog.Logger) error
+		fn       func(ctx context.Context, cli *CLI[struct{}], logger *slog.Logger) error
 		wantCode int
 		wantLogs []string
 	}{
 		{
 			name:     "success",
-			fn:       func(context.Context, *slog.Logger) error { return nil },
+			fn:       func(context.Context, *CLI[struct{}], *slog.Logger) error { return nil },
 			wantCode: 0,
 		},
 		{
 			name:     "error",
-			fn:       func(context.Context, *slog.Logger) error { return errors.New("boom") },
+			fn:       func(context.Context, *CLI[struct{}], *slog.Logger) error { return errors.New("boom") },
 			wantCode: exitCodeError,
 			wantLogs: []string{"fatal error", "boom"},
 		},
 		{
 			name: "exit-coder",
-			fn: func(context.Context, *slog.Logger) error {
+			fn: func(context.Context, *CLI[struct{}], *slog.Logger) error {
 				return fmt.Errorf("wrapped: %w", testExitCodeError{code: 42})
 			},
 			wantCode: 42,
@@ -69,13 +69,13 @@ func TestExecute(t *testing.T) {
 		},
 		{
 			name:     "panic",
-			fn:       func(context.Context, *slog.Logger) error { panic("kaboom") },
+			fn:       func(context.Context, *CLI[struct{}], *slog.Logger) error { panic("kaboom") },
 			wantCode: exitCodePanic,
 			wantLogs: []string{"panic", "kaboom", "execute_test.go"},
 		},
 		{
 			name: "canceled-without-signal",
-			fn: func(context.Context, *slog.Logger) error {
+			fn: func(context.Context, *CLI[struct{}], *slog.Logger) error {
 				return fmt.Errorf("wrapped: %w", context.Canceled)
 			},
 			wantCode: exitCodeError,
@@ -114,14 +114,14 @@ func TestExecuteLogSource(t *testing.T) {
 			name: "error-uses-execute-caller",
 			run: func(cli *CLI[struct{}]) int {
 				_, _, line, _ := runtime.Caller(0)
-				cli.Execute(func(context.Context, *slog.Logger) error { return errors.New("boom") })
+				cli.Execute(func(context.Context, *CLI[struct{}], *slog.Logger) error { return errors.New("boom") })
 				return line + 1
 			},
 		},
 		{
 			name: "panic-uses-panic-location",
 			run: func(cli *CLI[struct{}]) (line int) {
-				cli.Execute(func(context.Context, *slog.Logger) error {
+				cli.Execute(func(context.Context, *CLI[struct{}], *slog.Logger) error {
 					_, _, line, _ = runtime.Caller(0)
 					panic("kaboom")
 				})
@@ -131,7 +131,7 @@ func TestExecuteLogSource(t *testing.T) {
 		{
 			name: "runtime-panic-uses-panic-location",
 			run: func(cli *CLI[struct{}]) (line int) {
-				cli.Execute(func(context.Context, *slog.Logger) error {
+				cli.Execute(func(context.Context, *CLI[struct{}], *slog.Logger) error {
 					_, _, line, _ = runtime.Caller(0)
 					nilMap["foo"] = 1
 					return nil
@@ -158,7 +158,7 @@ func TestExecuteDeferredCleanup(t *testing.T) {
 	cli, code, _ := newExecuteTestCLI(t)
 
 	var cleaned bool
-	cli.Execute(func(context.Context, *slog.Logger) error {
+	cli.Execute(func(context.Context, *CLI[struct{}], *slog.Logger) error {
 		defer func() { cleaned = true }()
 		panic("kaboom")
 	})
@@ -174,7 +174,10 @@ func TestExecuteDeferredCleanup(t *testing.T) {
 func TestExecuteContext(t *testing.T) {
 	cli, _, _ := newExecuteTestCLI(t)
 
-	cli.Execute(func(ctx context.Context, logger *slog.Logger) error {
+	cli.Execute(func(ctx context.Context, c *CLI[struct{}], logger *slog.Logger) error {
+		if c != cli {
+			t.Error("expected provided CLI to be the CLI Execute was called on")
+		}
 		if FromContext[struct{}](ctx) != cli {
 			t.Error("expected context to contain the CLI")
 		}
@@ -192,7 +195,7 @@ func TestExecuteSignal(t *testing.T) {
 
 	cli, code, logs := newExecuteTestCLI(t)
 
-	cli.Execute(func(ctx context.Context, _ *slog.Logger) error {
+	cli.Execute(func(ctx context.Context, _ *CLI[struct{}], _ *slog.Logger) error {
 		proc, err := os.FindProcess(os.Getpid())
 		if err != nil {
 			return err

@@ -33,7 +33,7 @@ const (
 //		cli.Execute(run)
 //	}
 //
-//	func run(ctx context.Context, logger *slog.Logger) error {
+//	func run(ctx context.Context, cli *clix.CLI[Flags], logger *slog.Logger) error {
 //		db, err := openDB(ctx)
 //		if err != nil {
 //			return err
@@ -48,6 +48,7 @@ const (
 //     [signal.NotifyContext]). After the first signal, default signal handling is
 //     restored, so a second signal forcefully terminates the application. The
 //     context also contains the CLI (see [FromContext]).
+//   - The provided CLI is the CLI that Execute was called on.
 //   - The provided logger is the logger from [CLI.GetLogger], or [slog.Default]
 //     if the logging plugin is disabled.
 //   - If fn returns nil, or returns [context.Canceled] after a signal was
@@ -79,7 +80,7 @@ const (
 //
 // These can be combined with Execute, by returning the result of cli.Context.Run
 // from fn.
-func (c *CLI[T]) Execute(fn func(ctx context.Context, logger *slog.Logger) error) {
+func (c *CLI[T]) Execute(fn func(ctx context.Context, cli *CLI[T], logger *slog.Logger) error) {
 	logger := c.logger
 	if logger == nil {
 		logger = slog.Default()
@@ -102,7 +103,7 @@ func (c *CLI[T]) Execute(fn func(ctx context.Context, logger *slog.Logger) error
 		stop() // Restore default signal handling, so another signal forces an exit.
 	})
 
-	code := execute(ctx, logger, callerPC, fn)
+	code := execute(ctx, c, logger, callerPC, fn)
 
 	// Cancel the context (if not already) and wait for the above to finish, so
 	// any shutdown log entry is written before exiting.
@@ -116,11 +117,12 @@ func (c *CLI[T]) Execute(fn func(ctx context.Context, logger *slog.Logger) error
 	os.Exit(code)
 }
 
-func execute(
+func execute[T any](
 	ctx context.Context,
+	c *CLI[T],
 	logger *slog.Logger,
 	callerPC uintptr,
-	fn func(ctx context.Context, logger *slog.Logger) error,
+	fn func(ctx context.Context, cli *CLI[T], logger *slog.Logger) error,
 ) (code int) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -133,7 +135,7 @@ func execute(
 		}
 	}()
 
-	err := fn(ctx, logger)
+	err := fn(ctx, c, logger)
 	if err == nil || (errors.Is(err, context.Canceled) && ctx.Err() != nil) {
 		return 0
 	}
